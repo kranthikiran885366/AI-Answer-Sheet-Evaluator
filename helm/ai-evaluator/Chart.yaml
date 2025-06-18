@@ -1,0 +1,17 @@
+apiVersion: v2
+name: ai-evaluator
+description: AI-powered answer sheet evaluation system
+type: application
+version: 1.0.0
+appVersion: "2.0.0"
+keywords:
+  - ai
+  - education
+  - evaluation
+  - machine-learning
+home: https://github.com/your-org/ai-evaluator
+sources:
+  - https://github.com/your-org/ai-evaluator
+maintainers:
+  - name: AI Evaluator Team
+    email: team@ai-evaluator.com
