@@ -124,7 +124,7 @@ class GoogleAIAgent(BaseAIAgent):
         {request.text}
         
         Provide your evaluation in JSON format with the following structure:
-        ```json
+        \`\`\`json
         {{
             "score": <integer from 0 to {request.max_score}>,
             "grade": "<letter grade A+ to F>",
