@@ -35,8 +35,8 @@ import { ContinuousLearning } from "./components/continuous-learning"
 import { SecurityCompliance } from "./components/security-compliance"
 import { ExplainableAI } from "./components/explainable-ai"
 import { PlagiarismDetection } from "./components/plagiarism-detection"
-import { AuthenticationSystem } from "./components/authentication-system"
 import { BiasDetection } from "./components/bias-detection"
+import { useWebSocket } from "@/components/websocket-provider"
 
 export default function AIAnswerEvaluatorApp() {
   const [activeTab, setActiveTab] = useState("upload")
@@ -48,6 +48,7 @@ export default function AIAnswerEvaluatorApp() {
     activeUsers: 1256,
     processingTime: 2.3,
   })
+  const { isConnected } = useWebSocket()
 
   useEffect(() => {
     // Initialize system
@@ -82,10 +83,6 @@ export default function AIAnswerEvaluatorApp() {
     localStorage.removeItem("auth_status")
     localStorage.removeItem("user_role")
     setActiveTab("upload")
-  }
-
-  if (!isAuthenticated) {
-    return <AuthenticationSystem onLogin={handleLogin} />
   }
 
   const features = [
@@ -167,7 +164,9 @@ export default function AIAnswerEvaluatorApp() {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <div
+                  className={`w-2 h-2 ${isConnected ? "bg-green-400 animate-pulse" : "bg-red-400"} rounded-full`}
+                ></div>
                 <span>System Online</span>
               </div>
               <span>Evaluations: {systemStats.totalEvaluations.toLocaleString()}</span>
