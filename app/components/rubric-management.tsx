@@ -663,7 +663,7 @@ export function RubricManagement({ userRole }: RubricManagementProps) {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1 bg-transparent">
                       <Edit className="mr-1 h-3 w-3" />
                       Edit
                     </Button>
@@ -718,7 +718,7 @@ export function RubricManagement({ userRole }: RubricManagementProps) {
                       <span className="text-gray-500">Criteria: </span>
                       <span className="font-semibold">{template.criteria}</span>
                     </div>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full bg-transparent">
                       Use Template
                     </Button>
                   </div>
@@ -762,7 +762,7 @@ export function RubricManagement({ userRole }: RubricManagementProps) {
             <Card>
               <CardContent className="p-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-600">
+                  <div className="text-3xl font-bold text-indigo-600">
                     {new Set(rubrics.map((r) => r.subject)).size}
                   </div>
                   <div className="text-sm text-gray-600">Subjects</div>

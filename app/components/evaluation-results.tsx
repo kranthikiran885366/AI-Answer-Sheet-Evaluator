@@ -56,7 +56,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
         return "bg-blue-500 text-white"
       case "C+":
       case "C":
-        return "bg-yellow-500 text-white"
+        return "bg-orange-500 text-white"
       default:
         return "bg-red-500 text-white"
     }
@@ -112,7 +112,7 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
               <div className="text-xs text-muted-foreground">AI Confidence</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">{data.questions.length}</div>
+              <div className="text-3xl font-bold text-indigo-600">{data.questions.length}</div>
               <div className="text-xs text-muted-foreground">Questions</div>
             </div>
           </div>
@@ -129,19 +129,19 @@ export function EvaluationResults({ data }: EvaluationResultsProps) {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3 justify-center">
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
           <Download className="h-4 w-4" />
           Download Report
         </Button>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
           <Share className="h-4 w-4" />
           Share Results
         </Button>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
           <Printer className="h-4 w-4" />
           Print Report
         </Button>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
           <RotateCcw className="h-4 w-4" />
           Resubmit Answer
         </Button>

@@ -108,6 +108,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 duration: 4000,
               })
               break
+            case "system_status":
+              // Handle system status updates
+              break
           }
 
           // Notify subscribers
@@ -290,6 +293,36 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       window.removeEventListener("offline", handleOffline)
     }
   }, [isConnected, connect])
+
+  // Mock WebSocket connection for development purposes
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      const mockConnect = () => {
+        setIsConnected(true)
+
+        // Simulate periodic messages
+        const interval = setInterval(() => {
+          setLastMessage({
+            type: "system_status",
+            data: {
+              timestamp: new Date().toISOString(),
+              status: "online",
+              activeUsers: Math.floor(Math.random() * 100) + 1200,
+            },
+          })
+        }, 5000)
+
+        return () => clearInterval(interval)
+      }
+
+      const cleanup = mockConnect()
+
+      return () => {
+        cleanup()
+        setIsConnected(false)
+      }
+    }
+  }, [])
 
   const contextValue: WebSocketContextType = {
     isConnected,

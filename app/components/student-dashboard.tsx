@@ -81,7 +81,7 @@ export default function StudentDashboard() {
         return "bg-blue-500"
       case "C+":
       case "C":
-        return "bg-yellow-500"
+        return "bg-orange-500"
       default:
         return "bg-red-500"
     }
@@ -126,9 +126,9 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-xl bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-200/50 dark:border-orange-800/50">
+        <Card className="backdrop-blur-xl bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 border border-indigo-200/50 dark:border-indigo-800/50">
           <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-orange-600 mb-2">+{studentStats.improvementRate}%</div>
+            <div className="text-3xl font-bold text-indigo-600 mb-2">+{studentStats.improvementRate}%</div>
             <div className="text-sm text-slate-600 dark:text-slate-400">Improvement</div>
           </CardContent>
         </Card>
