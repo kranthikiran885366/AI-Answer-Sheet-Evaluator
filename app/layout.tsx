@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { WebSocketProvider } from "@/components/websocket-provider"
 import { MainSidebar } from "./components/main-sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -29,13 +30,15 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <MainSidebar userRole="admin" />
-              <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-blue-50">{children}</main>
-            </div>
-            <Toaster />
-          </SidebarProvider>
+          <WebSocketProvider>
+            <SidebarProvider>
+              <div className="flex min-h-screen w-full">
+                <MainSidebar userRole="admin" />
+                <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-blue-50">{children}</main>
+              </div>
+              <Toaster />
+            </SidebarProvider>
+          </WebSocketProvider>
         </ThemeProvider>
       </body>
     </html>
