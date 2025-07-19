@@ -239,7 +239,7 @@ export function AdminDashboard() {
       case "success":
         return "text-green-600 bg-green-50"
       case "warning":
-        return "text-yellow-600 bg-yellow-50"
+        return "text-orange-600 bg-orange-50"
       case "error":
         return "text-red-600 bg-red-50"
       case "info":
@@ -251,7 +251,7 @@ export function AdminDashboard() {
 
   const getHealthColor = (value: number) => {
     if (value < 50) return "text-green-600"
-    if (value < 80) return "text-yellow-600"
+    if (value < 80) return "text-orange-600"
     return "text-red-600"
   }
 
@@ -365,18 +365,18 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-orange-100">
+            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-indigo-50 to-indigo-100">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-orange-700 mb-1">Monthly Revenue</p>
-                    <p className="text-3xl font-bold text-orange-900">${systemMetrics.revenue.toLocaleString()}</p>
+                    <p className="text-sm font-medium text-indigo-700 mb-1">Monthly Revenue</p>
+                    <p className="text-3xl font-bold text-indigo-900">${systemMetrics.revenue.toLocaleString()}</p>
                     <div className="flex items-center mt-2 text-sm">
                       <DollarSign className="h-4 w-4 text-green-600 mr-1" />
                       <span className="text-green-600">+15.2% growth</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-orange-500 rounded-xl">
+                  <div className="p-3 bg-indigo-500 rounded-xl">
                     <TrendingUp className="h-8 w-8 text-white" />
                   </div>
                 </div>
@@ -541,7 +541,7 @@ export function AdminDashboard() {
           <Card className="shadow-professional border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-yellow-600" />
+                <Award className="h-5 w-5 text-purple-600" />
                 Top Institutions
               </CardTitle>
               <CardDescription>Most active educational institutions on the platform</CardDescription>
@@ -941,9 +941,9 @@ export function AdminDashboard() {
                     <div className="text-2xl font-bold text-purple-900">2.3s</div>
                     <div className="text-sm text-purple-700">Avg Response</div>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-orange-50">
-                    <div className="text-2xl font-bold text-orange-900">99.8%</div>
-                    <div className="text-sm text-orange-700">Uptime</div>
+                  <div className="text-center p-4 rounded-lg bg-indigo-50">
+                    <div className="text-2xl font-bold text-indigo-900">99.8%</div>
+                    <div className="text-sm text-indigo-700">Uptime</div>
                   </div>
                 </div>
               </div>

@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   font-feature-settings: "cv11", "ss01";
@@ -68,8 +66,8 @@ body {
     --chart-1: 59 130 246;
     --chart-2: 16 185 129;
     --chart-3: 245 101 101;
-    --chart-4: 251 191 36;
-    --chart-5: 139 92 246;
+    --chart-4: 139 92 246;
+    --chart-5: 34 197 94;
     --radius: 0.75rem;
     --sidebar-background: 255 255 255;
     --sidebar-foreground: 51 65 85;
@@ -104,8 +102,8 @@ body {
     --chart-1: 99 102 241;
     --chart-2: 34 197 94;
     --chart-3: 248 113 113;
-    --chart-4: 252 211 77;
-    --chart-5: 168 85 247;
+    --chart-4: 168 85 247;
+    --chart-5: 34 197 94;
     --sidebar-background: 15 23 42;
     --sidebar-foreground: 203 213 225;
     --sidebar-primary: 99 102 241;
