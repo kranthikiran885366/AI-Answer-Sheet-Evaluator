@@ -1,9 +1,11 @@
 # Testing
 
+## Full Suite (Recommended)
+- bash scripts/run-tests.sh runs unit, e2e, security, and performance tests and generates a report
+
 ## Frontend
-- Unit: npm test (Jest + React Testing Library)
-- Component: npm run test:components
-- E2E: npx cypress run (see tests/e2e)
+- Tests live under tests/frontend and tests/e2e
+- Run E2E with Cypress: npx cypress run (ensure the app and backend are running)
 
 ## Backend
 - PyTest under backend/testing: python -m pytest backend/testing -v
@@ -13,6 +15,3 @@
 - JMeter: jmeter -n -t tests/load/jmeter-test-plan.jmx -l results.jtl
 - Bandit: bandit -r backend -f json -o bandit-report.json
 - npm audit for Node.js deps
-
-## Full Suite
-- bash scripts/run-tests.sh runs the comprehensive suite and generates reports
