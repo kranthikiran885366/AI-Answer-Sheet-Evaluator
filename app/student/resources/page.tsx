@@ -1,0 +1,1 @@
+export default function StudentResourcesPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Study Resources</h1><p className="text-slate-600">Recommended materials and practice.</p></div> }

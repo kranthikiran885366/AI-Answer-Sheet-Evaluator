@@ -1,0 +1,1 @@
+export default function StudentEvaluationsPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">My Evaluations</h1><p className="text-slate-600">View your evaluated papers.</p></div> }

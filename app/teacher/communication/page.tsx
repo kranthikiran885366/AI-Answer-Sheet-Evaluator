@@ -1,0 +1,1 @@
+export default function TeacherCommunicationPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Communication</h1><p className="text-slate-600">Message students and parents.</p></div> }

@@ -1,0 +1,1 @@
+export default function AdminFinancialPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Financial Reports</h1><p className="text-slate-600">Billing and cost insights.</p></div> }

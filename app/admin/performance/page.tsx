@@ -1,0 +1,1 @@
+export default function AdminPerformancePage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Performance Metrics</h1><p className="text-slate-600">Key performance indicators.</p></div> }

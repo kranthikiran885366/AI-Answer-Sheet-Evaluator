@@ -1,0 +1,1 @@
+export default function AdminAIInsightsPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">AI Insights</h1><p className="text-slate-600">Recommendations and insights.</p></div> }

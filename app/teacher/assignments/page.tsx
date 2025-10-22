@@ -1,0 +1,1 @@
+export default function TeacherAssignmentsPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Assignment Tracker</h1><p className="text-slate-600">Manage assignments and due dates.</p></div> }

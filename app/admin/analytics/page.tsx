@@ -1,0 +1,1 @@
+export default function AdminAnalyticsPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">System Analytics</h1><p className="text-slate-600">Usage and performance analytics.</p></div> }

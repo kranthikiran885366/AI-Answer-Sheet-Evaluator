@@ -1,0 +1,1 @@
+export default function TeacherProgressPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Student Progress</h1><p className="text-slate-600">Track progress across classes.</p></div> }

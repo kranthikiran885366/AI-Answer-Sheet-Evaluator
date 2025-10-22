@@ -1,0 +1,1 @@
+export default function AdminModelPerfPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Model Performance</h1><p className="text-slate-600">Evaluate model accuracy and drift.</p></div> }

@@ -83,11 +83,11 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
   const getRoleColor = () => {
     switch (userRole) {
       case "admin":
-        return "from-blue-600 to-indigo-700"
+        return "from-slate-800 to-indigo-700"
       case "teacher":
-        return "from-emerald-600 to-teal-700"
+        return "from-cyan-600 to-emerald-700"
       case "student":
-        return "from-orange-600 to-red-700"
+        return "from-amber-600 to-orange-700"
       default:
         return "from-gray-600 to-gray-700"
     }

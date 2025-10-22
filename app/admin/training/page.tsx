@@ -1,0 +1,1 @@
+export default function AdminTrainingPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Training Pipeline</h1><p className="text-slate-600">Configure and monitor training.</p></div> }

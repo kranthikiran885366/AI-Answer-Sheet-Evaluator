@@ -1,0 +1,1 @@
+export default function TeacherGradesPage() { return <div className="p-6"><h1 className="text-2xl font-bold mb-2">Grade Analytics</h1><p className="text-slate-600">Analyze grades and trends.</p></div> }
