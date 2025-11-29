@@ -1,0 +1,72 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# JavaScript, TypeScript, JSX, TSX
+[*.{js,jsx,ts,tsx,mjs,cjs}]
+indent_style = space
+indent_size = 2
+quote_type = single
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# JSON, JSONC
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+
+# YAML
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Python
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 88
+
+# Markdown
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# Shell scripts
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+
+# Docker
+[Dockerfile*]
+indent_style = space
+indent_size = 2
+
+# Kubernetes
+[*.{k8s,yaml}]
+indent_style = space
+indent_size = 2
+
+# CSS, SCSS, LESS
+[*.{css,scss,less}]
+indent_style = space
+indent_size = 2
+quote_type = double
+
+# HTML
+[*.{html,htm}]
+indent_style = space
+indent_size = 2
+
+# Terraform
+[*.tf]
+indent_style = space
+indent_size = 2
