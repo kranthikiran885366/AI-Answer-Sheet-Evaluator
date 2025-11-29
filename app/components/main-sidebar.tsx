@@ -235,7 +235,7 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
   }
 
   return (
-    <Sidebar className="border-r border-gray-200/60 bg-white/95 backdrop-blur-xl">
+    <Sidebar className="border-r border-green-200/60 bg-white/95 backdrop-blur-xl">
       <SidebarHeader className={`bg-gradient-to-br ${getRoleColor()} text-white p-6`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
