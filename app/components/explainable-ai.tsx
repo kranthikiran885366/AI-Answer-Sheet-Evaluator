@@ -236,12 +236,12 @@ export function ExplainableAI() {
                     The answer demonstrates excellent understanding of fundamental concepts with clear explanations.
                   </p>
                 </div>
-                <div className="p-3 bg-yellow-50 rounded-lg">
+                <div className="p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-800">Areas for Improvement</span>
+                    <AlertCircle className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-800">Areas for Improvement</span>
                   </div>
-                  <p className="text-sm text-yellow-700">
+                  <p className="text-sm text-green-700">
                     Could benefit from more specific examples and detailed explanations of complex processes.
                   </p>
                 </div>
