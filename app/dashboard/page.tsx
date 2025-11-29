@@ -118,12 +118,12 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-white flex items-center justify-center">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center space-y-4">
-          <div className="w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center">
             <Brain className="w-7 h-7 text-white" />
           </div>
-          <p className="text-gray-600">Initializing dashboard...</p>
+          <p className="text-green-700">Initializing dashboard...</p>
           <Progress value={70} className="w-56 mx-auto" />
         </motion.div>
       </div>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                   <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Drop files here or click to upload</h3>
                   <p className="text-gray-600 mb-4">Support for PDF, JPG, PNG files up to 50MB</p>
-                  <Button className="bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700">Select Files</Button>
+                  <Button className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600">Select Files</Button>
                 </div>
               </CardContent>
             </Card>
@@ -170,30 +170,30 @@ export default function DashboardPage() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-white via-green-50 to-white">
         <MainSidebar userRole={currentUser?.role} />
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+          <header className="sticky top-0 z-40 border-b border-green-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <div className="flex h-16 items-center gap-4 px-6">
               <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
+              <Separator orientation="vertical" className="mr-2 h-4 bg-green-200" />
 
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-600 to-emerald-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-600 to-green-500">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">EvalAI Pro</span>
-                  <span className="text-xs text-gray-500">AI Answer Evaluator</span>
+                  <span className="text-sm font-semibold text-green-900">EvalAI Pro</span>
+                  <span className="text-xs text-green-600">AI Answer Evaluator</span>
                 </div>
               </div>
 
               <div className="ml-auto flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
-                  <span className="text-xs text-gray-600">{isConnected ? "Connected" : "Disconnected"}</span>
+                  <span className="text-xs text-green-700">{isConnected ? "Connected" : "Disconnected"}</span>
                 </div>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                   <Activity className="h-3 w-3 mr-1" />
                   System Online
                 </Badge>
