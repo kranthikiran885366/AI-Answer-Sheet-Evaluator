@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -78,6 +78,7 @@ interface SystemHealth {
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [isLoading, setIsLoading] = useState(true)
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalUsers: 2847,
     activeUsers: 1256,
@@ -113,16 +114,47 @@ export function AdminDashboard() {
 
   const [isRefreshing, setIsRefreshing] = useState(false)
 
+  useEffect(() => {
+    const fetchSystemStatus = async () => {
+      try {
+        const response = await fetch("/api/status")
+        if (response.ok) {
+          const data = await response.json()
+          setSystemMetrics((prev) => ({
+            ...prev,
+            activeUsers: data.active_users || prev.activeUsers,
+          }))
+        }
+      } catch (error) {
+        console.log("Using mock data")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSystemStatus()
+  }, [])
+
   const refreshData = async () => {
     setIsRefreshing(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    setSystemMetrics((prev) => ({
-      ...prev,
-      activeUsers: prev.activeUsers + Math.floor(Math.random() * 10),
-      todayEvaluations: prev.todayEvaluations + Math.floor(Math.random() * 5),
-    }))
-
+    try {
+      const response = await fetch("/api/status")
+      if (response.ok) {
+        const data = await response.json()
+        setSystemMetrics((prev) => ({
+          ...prev,
+          activeUsers: data.active_users || prev.activeUsers + Math.floor(Math.random() * 10),
+          todayEvaluations: prev.todayEvaluations + Math.floor(Math.random() * 5),
+        }))
+      }
+    } catch (error) {
+      console.log("Refresh failed, using mock data")
+      setSystemMetrics((prev) => ({
+        ...prev,
+        activeUsers: prev.activeUsers + Math.floor(Math.random() * 10),
+        todayEvaluations: prev.todayEvaluations + Math.floor(Math.random() * 5),
+      }))
+    }
     setIsRefreshing(false)
   }
 
@@ -157,11 +189,11 @@ export function AdminDashboard() {
     {
       id: 4,
       type: "error",
-      message: "OCR processing failed for 2 documents",
+      message: "OCR processing completed successfully",
       time: "15 minutes ago",
-      status: "warning",
+      status: "success",
       user: "OCR Engine",
-      details: "Handwriting quality issues",
+      details: "Handwriting quality optimized",
     },
     {
       id: 5,
@@ -177,17 +209,17 @@ export function AdminDashboard() {
   const systemAlerts = [
     {
       id: 1,
-      type: "warning",
-      title: "High CPU Usage",
-      message: "Server CPU usage is at 85% - consider scaling",
-      priority: "medium",
+      type: "info",
+      title: "System Status",
+      message: "All systems operational and running smoothly",
+      priority: "low",
       time: "5 minutes ago",
     },
     {
       id: 2,
       type: "info",
       title: "Scheduled Maintenance",
-      message: "System maintenance scheduled for tonight at 2 AM UTC",
+      message: "System maintenance scheduled for next week at 2 AM UTC",
       priority: "low",
       time: "1 hour ago",
     },
@@ -201,10 +233,10 @@ export function AdminDashboard() {
     },
     {
       id: 4,
-      type: "warning",
-      title: "License Expiring",
-      message: "AI model license expires in 7 days",
-      priority: "high",
+      type: "info",
+      title: "License Status",
+      message: "AI model license valid until next month",
+      priority: "low",
       time: "3 hours ago",
     },
   ]
@@ -243,9 +275,9 @@ export function AdminDashboard() {
       case "error":
         return "text-red-600 bg-red-50"
       case "info":
-        return "text-blue-600 bg-blue-50"
+        return "text-green-600 bg-green-50"
       default:
-        return "text-gray-600 bg-gray-50"
+        return "text-green-600 bg-green-50"
     }
   }
 
@@ -258,25 +290,28 @@ export function AdminDashboard() {
   const getGrowthIcon = (growth: number) => {
     if (growth > 0) return <ArrowUp className="h-4 w-4 text-green-600" />
     if (growth < 0) return <ArrowDown className="h-4 w-4 text-red-600" />
-    return <Minus className="h-4 w-4 text-gray-600" />
+    return <Minus className="h-4 w-4 text-green-600" />
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-gradient-to-br from-white via-green-50 to-white min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-600 mt-2 text-lg">System overview and management controls</p>
+          <h1 className="text-4xl font-bold text-green-900">Admin Dashboard</h1>
+          <p className="text-green-700 mt-2 text-lg">System overview and management controls</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={refreshData} disabled={isRefreshing} className="shadow-sm bg-transparent">
+          <Button
+            variant="outline"
+            onClick={refreshData}
+            disabled={isRefreshing}
+            className="shadow-sm bg-white border-green-300 text-green-700 hover:bg-green-50"
+          >
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button className="shadow-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          <Button className="shadow-sm bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white">
             <Download className="mr-2 h-4 w-4" />
             Export Report
           </Button>
@@ -284,377 +319,213 @@ export function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm rounded-xl p-1">
-          <TabsTrigger value="overview" className="rounded-lg">
+        <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm rounded-xl p-1 border border-green-200">
+          <TabsTrigger
+            value="overview"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             Overview
           </TabsTrigger>
-          <TabsTrigger value="users" className="rounded-lg">
+          <TabsTrigger
+            value="users"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             Users
           </TabsTrigger>
-          <TabsTrigger value="system" className="rounded-lg">
+          <TabsTrigger
+            value="system"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             System
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="rounded-lg">
+          <TabsTrigger
+            value="analytics"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="ai" className="rounded-lg">
+          <TabsTrigger
+            value="ai"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             AI Models
           </TabsTrigger>
-          <TabsTrigger value="settings" className="rounded-lg">
+          <TabsTrigger
+            value="settings"
+            className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             Settings
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Key Metrics */}
+          {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-700 mb-1">Total Users</p>
-                    <p className="text-3xl font-bold text-blue-900">{systemMetrics.totalUsers.toLocaleString()}</p>
-                    <div className="flex items-center mt-2 text-sm">
-                      {getGrowthIcon(systemMetrics.growth)}
-                      <span className="text-green-600 ml-1">+{systemMetrics.growth}% from last month</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-500 rounded-xl">
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                </div>
+            {/* Total Users */}
+            <Card className="bg-white border border-green-200 shadow-sm hover:shadow-md transition">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-900">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">{systemMetrics.totalUsers.toLocaleString()}</div>
+                <p className="text-xs text-green-600 mt-1">
+                  <ArrowUp className="h-3 w-3 inline mr-1" />
+                  {systemMetrics.growth}% from last month
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-green-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-700 mb-1">Active Users</p>
-                    <p className="text-3xl font-bold text-green-900">{systemMetrics.activeUsers.toLocaleString()}</p>
-                    <div className="flex items-center mt-2 text-sm">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                      <span className="text-green-600">Online now</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-green-500 rounded-xl">
-                    <Activity className="h-8 w-8 text-white" />
-                  </div>
-                </div>
+            {/* Active Users */}
+            <Card className="bg-white border border-green-200 shadow-sm hover:shadow-md transition">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-900">Active Users</CardTitle>
+                <Activity className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">{systemMetrics.activeUsers.toLocaleString()}</div>
+                <p className="text-xs text-green-600 mt-1">Online now</p>
               </CardContent>
             </Card>
 
-            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-700 mb-1">Total Evaluations</p>
-                    <p className="text-3xl font-bold text-purple-900">
-                      {systemMetrics.totalEvaluations.toLocaleString()}
-                    </p>
-                    <div className="flex items-center mt-2 text-sm">
-                      <Clock className="h-4 w-4 text-blue-600 mr-1" />
-                      <span className="text-blue-600">{systemMetrics.todayEvaluations} today</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-purple-500 rounded-xl">
-                    <FileText className="h-8 w-8 text-white" />
-                  </div>
-                </div>
+            {/* Total Evaluations */}
+            <Card className="bg-white border border-green-200 shadow-sm hover:shadow-md transition">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-900">Total Evaluations</CardTitle>
+                <FileText className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">{systemMetrics.totalEvaluations.toLocaleString()}</div>
+                <p className="text-xs text-green-600 mt-1">{systemMetrics.todayEvaluations} today</p>
               </CardContent>
             </Card>
 
-            <Card className="shadow-professional hover:shadow-professional-lg transition-all duration-300 border-0 bg-gradient-to-br from-indigo-50 to-indigo-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-indigo-700 mb-1">Monthly Revenue</p>
-                    <p className="text-3xl font-bold text-indigo-900">${systemMetrics.revenue.toLocaleString()}</p>
-                    <div className="flex items-center mt-2 text-sm">
-                      <DollarSign className="h-4 w-4 text-green-600 mr-1" />
-                      <span className="text-green-600">+15.2% growth</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-indigo-500 rounded-xl">
-                    <TrendingUp className="h-8 w-8 text-white" />
-                  </div>
-                </div>
+            {/* Monthly Revenue */}
+            <Card className="bg-white border border-green-200 shadow-sm hover:shadow-md transition">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-900">Monthly Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">${(systemMetrics.revenue / 1000).toFixed(1)}K</div>
+                <p className="text-xs text-green-600 mt-1">
+                  <ArrowUp className="h-3 w-3 inline mr-1" />
+                  15.2% growth
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* System Health & Performance */}
+          {/* System Performance & Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="shadow-professional border-0">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2">
-                  <Server className="h-5 w-5 text-blue-600" />
-                  System Performance
-                </CardTitle>
-                <CardDescription>Real-time system health metrics</CardDescription>
+            {/* System Performance */}
+            <Card className="bg-white border border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-900">System Performance</CardTitle>
+                <CardDescription className="text-green-600">Real-time system metrics</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium">CPU Usage</span>
-                    </div>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-green-900">CPU Usage</span>
                     <span className={`text-sm font-semibold ${getHealthColor(systemHealth.cpu)}`}>
                       {systemHealth.cpu}%
                     </span>
                   </div>
                   <Progress value={systemHealth.cpu} className="h-2" />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <HardDrive className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium">Memory Usage</span>
-                    </div>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-green-900">Memory Usage</span>
                     <span className={`text-sm font-semibold ${getHealthColor(systemHealth.memory)}`}>
                       {systemHealth.memory}%
                     </span>
                   </div>
                   <Progress value={systemHealth.memory} className="h-2" />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium">Disk I/O</span>
-                    </div>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-green-900">Disk Usage</span>
                     <span className={`text-sm font-semibold ${getHealthColor(systemHealth.disk)}`}>
                       {systemHealth.disk}%
                     </span>
                   </div>
                   <Progress value={systemHealth.disk} className="h-2" />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Wifi className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium">Network</span>
-                    </div>
-                    <span className={`text-sm font-semibold ${getHealthColor(systemHealth.network)}`}>
-                      {systemHealth.network}%
-                    </span>
-                  </div>
-                  <Progress value={systemHealth.network} className="h-2" />
-                </div>
-
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">System Uptime</span>
-                    <Badge className="bg-green-100 text-green-800">{systemMetrics.systemUptime}</Badge>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-professional border-0">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-green-600" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription>Latest system activities and events</CardDescription>
+            {/* Recent Activity */}
+            <Card className="bg-white border border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-900">Recent Activity</CardTitle>
+                <CardDescription className="text-green-600">Latest system events</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-80 overflow-y-auto">
-                  {recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
-                        {getActivityIcon(activity.type)}
-                      </div>
+              <CardContent className="space-y-4 max-h-60 overflow-y-auto">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className={`p-3 rounded-lg ${getStatusColor(activity.status)}`}>
+                    <div className="flex items-start gap-3">
+                      {getActivityIcon(activity.type)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 mb-1">{activity.message}</p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">
-                            {activity.time} • {activity.user}
-                          </p>
-                          <Badge variant="outline" className="text-xs">
-                            {activity.details}
-                          </Badge>
-                        </div>
+                        <p className="text-sm font-medium truncate">{activity.message}</p>
+                        <p className="text-xs opacity-70 mt-1">{activity.time}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
-
-          {/* System Alerts */}
-          <Card className="shadow-professional border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
-                System Alerts
-              </CardTitle>
-              <CardDescription>Important system notifications and warnings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {systemAlerts.map((alert) => (
-                  <Alert
-                    key={alert.id}
-                    variant={alert.type === "warning" ? "destructive" : "default"}
-                    className="border-l-4"
-                  >
-                    <AlertTriangle className="h-4 w-4" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <AlertTitle className="mb-1">{alert.title}</AlertTitle>
-                        <AlertDescription>{alert.message}</AlertDescription>
-                      </div>
-                      <div className="text-right">
-                        <Badge
-                          variant={
-                            alert.priority === "high"
-                              ? "destructive"
-                              : alert.priority === "medium"
-                                ? "default"
-                                : "secondary"
-                          }
-                          className="mb-1"
-                        >
-                          {alert.priority}
-                        </Badge>
-                        <p className="text-xs text-gray-500">{alert.time}</p>
-                      </div>
-                    </div>
-                  </Alert>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Top Institutions */}
-          <Card className="shadow-professional border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-purple-600" />
-                Top Institutions
-              </CardTitle>
-              <CardDescription>Most active educational institutions on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {topInstitutions.map((institution, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{institution.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          {institution.users} users • {institution.evaluations.toLocaleString()} evaluations
-                        </p>
-                      </div>
-                    </div>
-                    <Badge
-                      variant={institution.plan === "Enterprise" ? "default" : "secondary"}
-                      className={institution.plan === "Enterprise" ? "bg-purple-100 text-purple-800" : ""}
-                    >
-                      {institution.plan}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-red-50 to-red-100">
-              <CardContent className="p-6 text-center">
-                <div className="p-3 bg-red-500 rounded-xl w-fit mx-auto mb-4">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-red-900 mb-1">{userStats.admins}</div>
-                <div className="text-sm text-red-700 font-medium">Administrators</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-white border border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-900">Administrators</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-900">{userStats.admins}</p>
+                <p className="text-sm text-green-600 mt-2">System administrators</p>
               </CardContent>
             </Card>
-
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardContent className="p-6 text-center">
-                <div className="p-3 bg-blue-500 rounded-xl w-fit mx-auto mb-4">
-                  <Users className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-blue-900 mb-1">{userStats.teachers}</div>
-                <div className="text-sm text-blue-700 font-medium">Teachers</div>
+            <Card className="bg-white border border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-900">Teachers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-900">{userStats.teachers}</p>
+                <p className="text-sm text-green-600 mt-2">Active instructors</p>
               </CardContent>
             </Card>
-
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-green-50 to-green-100">
-              <CardContent className="p-6 text-center">
-                <div className="p-3 bg-green-500 rounded-xl w-fit mx-auto mb-4">
-                  <GraduationCap className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-green-900 mb-1">{userStats.students}</div>
-                <div className="text-sm text-green-700 font-medium">Students</div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-purple-50 to-purple-100">
-              <CardContent className="p-6 text-center">
-                <div className="p-3 bg-purple-500 rounded-xl w-fit mx-auto mb-4">
-                  <TrendingUp className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-purple-900 mb-1">{userStats.newUsersToday}</div>
-                <div className="text-sm text-purple-700 font-medium">New Today</div>
+            <Card className="bg-white border border-green-200">
+              <CardHeader>
+                <CardTitle className="text-green-900">Students</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-900">{userStats.students}</p>
+                <p className="text-sm text-green-600 mt-2">Active learners</p>
               </CardContent>
             </Card>
           </div>
-
-          <Card className="shadow-professional border-0">
+          <Card className="bg-white border border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                User Management
-              </CardTitle>
-              <CardDescription>Manage system users and permissions</CardDescription>
+              <CardTitle className="text-green-900">Top Institutions</CardTitle>
+              <CardDescription className="text-green-600">Organizations by activity</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <div className="flex flex-wrap gap-4">
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    <Users className="mr-2 h-4 w-4" />
-                    Add User
-                  </Button>
-                  <Button variant="outline">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Bulk Import
-                  </Button>
-                  <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Users
-                  </Button>
-                </div>
-
-                <div className="border rounded-xl p-8 bg-gray-50">
-                  <div className="text-center">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">User Management Interface</h3>
-                    <p className="text-gray-600">
-                      Advanced user management table with filtering, sorting, and bulk actions would be displayed here
-                    </p>
+              <div className="space-y-4">
+                {topInstitutions.map((inst, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-green-900">{inst.name}</p>
+                      <p className="text-sm text-green-600">{inst.users.toLocaleString()} users</p>
+                    </div>
+                    <Badge className="bg-green-600 text-white">{inst.plan}</Badge>
                   </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -663,289 +534,83 @@ export function AdminDashboard() {
         {/* System Tab */}
         <TabsContent value="system" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-professional border-0">
+            <Card className="bg-white border border-green-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-green-900 flex items-center gap-2">
+                  <Database className="h-5 w-5" />
                   Database Status
                 </CardTitle>
-                <CardDescription>Database connections and health</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="font-medium">PostgreSQL</span>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="font-medium">MongoDB</span>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="font-medium">Redis Cache</span>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">Storage Used</span>
-                      <span className="text-gray-600">2.4 TB / 5 TB</span>
-                    </div>
-                    <Progress value={48} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>48% utilized</span>
-                      <span>2.6 TB available</span>
-                    </div>
-                  </div>
-                </div>
+              <CardContent>
+                <Badge className="bg-green-100 text-green-800">{systemHealth.database}</Badge>
+                <p className="text-sm text-green-600 mt-2">PostgreSQL connection active</p>
               </CardContent>
             </Card>
-
-            <Card className="shadow-professional border-0">
+            <Card className="bg-white border border-green-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5 text-blue-600" />
-                  Server Resources
+                <CardTitle className="text-green-900 flex items-center gap-2">
+                  <Server className="h-5 w-5" />
+                  Redis Cache
                 </CardTitle>
-                <CardDescription>Real-time server performance</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">CPU Usage</span>
-                    <span className={getHealthColor(systemHealth.cpu)}>{systemHealth.cpu}%</span>
-                  </div>
-                  <Progress value={systemHealth.cpu} className="h-2" />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">Memory Usage</span>
-                    <span className={getHealthColor(systemHealth.memory)}>{systemHealth.memory}%</span>
-                  </div>
-                  <Progress value={systemHealth.memory} className="h-2" />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">Disk I/O</span>
-                    <span className={getHealthColor(systemHealth.disk)}>{systemHealth.disk}%</span>
-                  </div>
-                  <Progress value={systemHealth.disk} className="h-2" />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">Network</span>
-                    <span className={getHealthColor(systemHealth.network)}>{systemHealth.network}%</span>
-                  </div>
-                  <Progress value={systemHealth.network} className="h-2" />
-                </div>
+              <CardContent>
+                <Badge className="bg-green-100 text-green-800">{systemHealth.redis}</Badge>
+                <p className="text-sm text-green-600 mt-2">Cache layer operational</p>
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
 
-          <Card className="shadow-professional border-0">
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <Card className="bg-white border border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                System Controls
-              </CardTitle>
-              <CardDescription>Manage system operations and maintenance</CardDescription>
+              <CardTitle className="text-green-900">Evaluation Metrics</CardTitle>
+              <CardDescription className="text-green-600">AI accuracy and performance statistics</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-3 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-200"
-                >
-                  <Database className="h-8 w-8 text-blue-600" />
-                  <span className="font-medium">Backup Database</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-3 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-green-200"
-                >
-                  <RefreshCw className="h-8 w-8 text-green-600" />
-                  <span className="font-medium">Restart Services</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-3 bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-200"
-                >
-                  <Settings className="h-8 w-8 text-purple-600" />
-                  <span className="font-medium">System Settings</span>
-                </Button>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-green-900 font-medium mb-2">AI Accuracy Rate</p>
+                  <p className="text-3xl font-bold text-green-900">{systemMetrics.accuracyRate}%</p>
+                  <Progress value={systemMetrics.accuracyRate} className="mt-2" />
+                </div>
+                <div>
+                  <p className="text-sm text-green-900 font-medium mb-2">Avg Processing Time</p>
+                  <p className="text-3xl font-bold text-green-900">{systemMetrics.averageProcessingTime}s</p>
+                  <p className="text-sm text-green-600 mt-2">Per document</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="shadow-professional border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  Usage Analytics
-                </CardTitle>
-                <CardDescription>System usage patterns</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-blue-600 mx-auto mb-3" />
-                    <p className="text-blue-800 font-medium">Usage Analytics Chart</p>
-                    <p className="text-sm text-blue-600">Interactive visualization</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-professional border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5 text-green-600" />
-                  User Distribution
-                </CardTitle>
-                <CardDescription>User role breakdown</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                  <div className="text-center">
-                    <PieChart className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                    <p className="text-green-800 font-medium">Distribution Chart</p>
-                    <p className="text-sm text-green-600">User role analytics</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-professional border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LineChart className="h-5 w-5 text-purple-600" />
-                  Performance Trends
-                </CardTitle>
-                <CardDescription>System performance over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 flex items-center justify-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                  <div className="text-center">
-                    <LineChart className="h-12 w-12 text-purple-600 mx-auto mb-3" />
-                    <p className="text-purple-800 font-medium">Performance Trends</p>
-                    <p className="text-sm text-purple-600">Historical data analysis</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
         {/* AI Models Tab */}
         <TabsContent value="ai" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-500 rounded-xl">
-                    <Brain className="h-8 w-8 text-white" />
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Active</Badge>
-                </div>
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">GPT-4 Turbo</h3>
-                <p className="text-sm text-blue-700 mb-4">Advanced language model for evaluation</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Accuracy</span>
-                    <span className="font-semibold">94.8%</span>
-                  </div>
-                  <Progress value={94.8} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-green-50 to-green-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-500 rounded-xl">
-                    <Eye className="h-8 w-8 text-white" />
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Active</Badge>
-                </div>
-                <h3 className="text-lg font-semibold text-green-900 mb-2">Claude 3 Opus</h3>
-                <p className="text-sm text-green-700 mb-4">Reasoning and analysis model</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Accuracy</span>
-                    <span className="font-semibold">92.3%</span>
-                  </div>
-                  <Progress value={92.3} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-professional border-0 bg-gradient-to-br from-purple-50 to-purple-100">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-500 rounded-xl">
-                    <Scan className="h-8 w-8 text-white" />
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Active</Badge>
-                </div>
-                <h3 className="text-lg font-semibold text-purple-900 mb-2">OCR Engine</h3>
-                <p className="text-sm text-purple-700 mb-4">Handwriting recognition system</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Accuracy</span>
-                    <span className="font-semibold">99.2%</span>
-                  </div>
-                  <Progress value={99.2} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-professional border-0">
+          <Card className="bg-white border border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Model Performance Metrics
+              <CardTitle className="text-green-900 flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                AI Models Status
               </CardTitle>
-              <CardDescription>Detailed performance analytics for all AI models</CardDescription>
+              <CardDescription className="text-green-600">Active AI model instances</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 rounded-lg bg-blue-50">
-                    <div className="text-2xl font-bold text-blue-900">15</div>
-                    <div className="text-sm text-blue-700">Active Models</div>
+              <div className="space-y-3">
+                {[
+                  { name: "GPT-4", status: "Active", accuracy: 96 },
+                  { name: "Claude 3", status: "Active", accuracy: 95 },
+                  { name: "OCR Engine", status: "Active", accuracy: 98 },
+                  { name: "Custom LLM", status: "Active", accuracy: 92 },
+                ].map((model, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-green-900">{model.name}</p>
+                      <p className="text-sm text-green-600">{model.accuracy}% accuracy</p>
+                    </div>
+                    <Badge className="bg-green-600 text-white">{model.status}</Badge>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-green-50">
-                    <div className="text-2xl font-bold text-green-900">94.8%</div>
-                    <div className="text-sm text-green-700">Avg Accuracy</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-purple-50">
-                    <div className="text-2xl font-bold text-purple-900">2.3s</div>
-                    <div className="text-sm text-purple-700">Avg Response</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-indigo-50">
-                    <div className="text-2xl font-bold text-indigo-900">99.8%</div>
-                    <div className="text-sm text-indigo-700">Uptime</div>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -953,91 +618,28 @@ export function AdminDashboard() {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
-          <Card className="shadow-professional border-0">
+          <Card className="bg-white border border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                System Configuration
-              </CardTitle>
-              <CardDescription>Configure system-wide settings and preferences</CardDescription>
+              <CardTitle className="text-green-900">System Settings</CardTitle>
+              <CardDescription className="text-green-600">Configure system parameters</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="max-users" className="text-sm font-medium">
-                      Maximum Concurrent Users
-                    </Label>
-                    <Input id="max-users" type="number" defaultValue="1000" className="mt-1" />
-                  </div>
-                  <div>
-                    <Label htmlFor="session-timeout" className="text-sm font-medium">
-                      Session Timeout (minutes)
-                    </Label>
-                    <Input id="session-timeout" type="number" defaultValue="30" className="mt-1" />
-                  </div>
-                  <div>
-                    <Label htmlFor="backup-frequency" className="text-sm font-medium">
-                      Backup Frequency
-                    </Label>
-                    <Select defaultValue="daily">
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hourly">Hourly</SelectItem>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="log-level" className="text-sm font-medium">
-                      Log Level
-                    </Label>
-                    <Select defaultValue="info">
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="debug">Debug</SelectItem>
-                        <SelectItem value="info">Info</SelectItem>
-                        <SelectItem value="warning">Warning</SelectItem>
-                        <SelectItem value="error">Error</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="max-file-size" className="text-sm font-medium">
-                      Max File Size (MB)
-                    </Label>
-                    <Input id="max-file-size" type="number" defaultValue="50" className="mt-1" />
-                  </div>
-                  <div>
-                    <Label htmlFor="ai-model" className="text-sm font-medium">
-                      Default AI Model
-                    </Label>
-                    <Select defaultValue="gpt-4">
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4">GPT-4 Turbo</SelectItem>
-                        <SelectItem value="claude-3">Claude 3 Opus</SelectItem>
-                        <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-green-900">System Name</Label>
+                <Input
+                  defaultValue="EvalAI Pro"
+                  className="border-green-200 focus:border-green-500"
+                />
               </div>
-              <div className="flex gap-4 pt-6 border-t">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Save Settings
-                </Button>
-                <Button variant="outline">Reset to Defaults</Button>
+              <div className="space-y-2">
+                <Label className="text-green-900">Max Upload Size (MB)</Label>
+                <Input
+                  type="number"
+                  defaultValue="50"
+                  className="border-green-200 focus:border-green-500"
+                />
               </div>
+              <Button className="bg-green-600 hover:bg-green-700 text-white mt-4">Save Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
