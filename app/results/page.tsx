@@ -1,4 +1,12 @@
+"use client"
+
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { MainSidebar } from "@/app/components/main-sidebar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { EvaluationResults } from "@/app/components/evaluation-results"
+import { BarChart3 } from "lucide-react"
 
 const mockEvaluationData = {
   studentName: "John Smith",
@@ -33,14 +41,54 @@ const mockEvaluationData = {
       keyPointsMissed: ["Discriminant explanation"],
       suggestions: "Always show the discriminant calculation step for complete clarity.",
     },
+    {
+      id: 2,
+      question: "Find the derivative of f(x) = 3x³ - 2x² + x - 5",
+      studentAnswer: "f'(x) = 9x² - 4x + 1",
+      obtainedMarks: 10,
+      maxMarks: 10,
+      feedback: "Perfect! Correctly applied the power rule for each term.",
+      keyPointsCovered: ["Power rule", "Correct coefficients", "All terms included"],
+      keyPointsMissed: [],
+      suggestions: "Excellent work. Continue practicing with more complex functions.",
+    },
   ],
 }
 
 export default function ResultsPage() {
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Evaluation Results</h1>
-      <EvaluationResults data={mockEvaluationData} />
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-white via-green-50 to-white">
+        <MainSidebar userRole="teacher" />
+        <SidebarInset className="flex-1">
+          <header className="sticky top-0 z-40 border-b border-green-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+            <div className="flex h-16 items-center gap-4 px-6">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4 bg-green-200" />
+              <h1 className="text-lg font-semibold text-green-900">Evaluation Results</h1>
+              <div className="ml-auto flex items-center gap-2">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                  <BarChart3 className="h-3 w-3 mr-1" />
+                  Details
+                </Badge>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto p-6 space-y-8">
+              {/* Header */}
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold text-green-900">Evaluation Results</h2>
+                <p className="text-green-700">Detailed analysis and feedback for evaluated submissions</p>
+              </div>
+
+              {/* Results Component */}
+              <EvaluationResults data={mockEvaluationData} />
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }
