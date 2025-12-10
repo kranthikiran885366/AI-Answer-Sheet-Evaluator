@@ -134,7 +134,7 @@ export default function StudentEvaluationsPage() {
               </Card>
 
               {/* Pending Evaluations */}
-              <Card className="border-amber-200 bg-amber-50/30">
+              <Card className="border-blue-200 bg-blue-50/30">
                 <CardHeader>
                   <CardTitle>Pending Evaluations</CardTitle>
                   <CardDescription>Papers waiting for evaluation feedback</CardDescription>
