@@ -109,7 +109,7 @@ export default function TeacherProgressPage() {
               </Card>
 
               {/* At-Risk Students */}
-              <Card className="border-amber-200 bg-amber-50/30">
+              <Card className="border-blue-200 bg-blue-50/30">
                 <CardHeader>
                   <CardTitle>Students Needing Support</CardTitle>
                   <CardDescription>Students showing declining or low progress</CardDescription>
