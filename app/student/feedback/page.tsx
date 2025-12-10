@@ -49,10 +49,10 @@ export default function StudentFeedbackPage() {
                     </AlertDescription>
                   </Alert>
 
-                  <Alert className="border-amber-200 bg-amber-50">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                    <AlertTitle className="text-amber-900">Areas for Improvement</AlertTitle>
-                    <AlertDescription className="text-amber-700 mt-2">
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertTitle className="text-blue-900">Areas for Improvement</AlertTitle>
+                    <AlertDescription className="text-blue-700 mt-2">
                       <ul className="list-disc list-inside space-y-1">
                         <li>Show intermediate steps more clearly</li>
                         <li>Double-check final answers for accuracy</li>
