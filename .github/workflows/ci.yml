@@ -39,7 +39,7 @@ jobs:
         run: npm run build
       
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage/coverage-final.json
           flags: frontend
@@ -112,7 +112,7 @@ jobs:
         run: pytest backend/testing --cov=backend --cov-report=xml -v
       
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
           flags: backend
