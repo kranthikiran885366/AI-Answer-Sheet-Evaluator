@@ -161,12 +161,15 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
       }
 
-      newSocket.onerror = (error) => {
-        console.error("WebSocket error:", error)
+      newSocket.onerror = (event) => {
+        const errorMessage = event instanceof Event
+          ? `WebSocket error: ${newSocket.readyState === WebSocket.CONNECTING ? "Connection failed" : "Unknown error"}`
+          : String(event)
+        console.error(errorMessage, event)
         setConnectionStatus("error")
         toast({
           title: "Connection Error",
-          description: "WebSocket connection error occurred",
+          description: "Failed to establish WebSocket connection. Please check your network.",
           variant: "destructive",
           duration: 5000,
         })
