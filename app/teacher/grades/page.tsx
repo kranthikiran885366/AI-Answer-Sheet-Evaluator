@@ -144,7 +144,7 @@ export default function TeacherGradesPage() {
               </Card>
 
               {/* Needs Improvement */}
-              <Card className="border-amber-200 bg-amber-50/30">
+              <Card className="border-blue-200 bg-blue-50/30">
                 <CardHeader>
                   <CardTitle>Students Needing Support</CardTitle>
                   <CardDescription>Students with grades below 75%</CardDescription>
