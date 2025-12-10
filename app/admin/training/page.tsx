@@ -63,13 +63,13 @@ export default function AdminTrainingPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-green-200 bg-gradient-to-br from-amber-50 to-white">
+                <Card className="border-green-200 bg-gradient-to-br from-blue-50 to-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">Avg Duration</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-900">Avg Duration</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-amber-700">4.5 hrs</p>
-                    <p className="text-xs text-amber-600 mt-1">Per training job</p>
+                    <p className="text-2xl font-bold text-blue-700">4.5 hrs</p>
+                    <p className="text-xs text-blue-600 mt-1">Per training job</p>
                   </CardContent>
                 </Card>
               </div>
