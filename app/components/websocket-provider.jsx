@@ -75,8 +75,12 @@ export default function WebSocketProvider({ children }) {
         }
       }
 
-      ws.onerror = (error) => {
-        console.log("WebSocket connection error - this is normal if backend is not running")
+      ws.onerror = (event) => {
+        const errorMessage = event instanceof Event
+          ? `WebSocket error: Connection failed (readyState: ${ws.readyState})`
+          : String(event)
+        console.error("WebSocket connection error:", errorMessage)
+        console.log("Note: This is normal if backend server is not running")
         setConnectionStatus("error")
         setIsConnected(false)
       }
