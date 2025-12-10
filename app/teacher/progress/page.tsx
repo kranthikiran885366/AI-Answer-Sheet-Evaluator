@@ -119,7 +119,7 @@ export default function TeacherProgressPage() {
                     { name: "James Thompson", decline: "-5.2%", current: "72%" },
                     { name: "Kevin White", decline: "-2.1%", current: "68%" },
                   ].map((student, idx) => (
-                    <div key={idx} className="p-3 rounded-lg border border-amber-200 bg-white">
+                    <div key={idx} className="p-3 rounded-lg border border-blue-200 bg-white">
                       <div className="flex items-center justify-between">
                         <p className="font-medium text-green-900">{student.name}</p>
                         <Badge variant="outline" className="border-amber-300 bg-amber-100">
