@@ -155,7 +155,7 @@ export default function TeacherGradesPage() {
                       { name: "David Wilson", grade: 72, subject: "Algebra Fundamentals" },
                       { name: "Henry Brown", grade: 68, subject: "Problem Solving" },
                     ].map((student, idx) => (
-                      <div key={idx} className="p-3 rounded-lg border border-amber-200 bg-white">
+                      <div key={idx} className="p-3 rounded-lg border border-blue-200 bg-white">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium text-green-900">{student.name}</p>
