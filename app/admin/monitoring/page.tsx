@@ -78,12 +78,12 @@ export default function AdminMonitoringPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-green-200 bg-gradient-to-br from-amber-50 to-white">
+                <Card className="border-green-200 bg-gradient-to-br from-blue-50 to-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">Disk Usage</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-900">Disk Usage</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-amber-700">42%</p>
+                    <p className="text-2xl font-bold text-blue-700">42%</p>
                     <Progress value={42} className="mt-2" />
                   </CardContent>
                 </Card>
