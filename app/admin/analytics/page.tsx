@@ -39,8 +39,8 @@ export default function AdminAnalyticsPage() {
       value: "96.8%",
       change: "+1.2% improvement",
       icon: Activity,
-      color: "bg-amber-100 text-amber-700",
-      bgColor: "from-amber-50 to-white",
+      color: "bg-blue-100 text-blue-700",
+      bgColor: "from-blue-50 to-white",
     },
   ]
 
