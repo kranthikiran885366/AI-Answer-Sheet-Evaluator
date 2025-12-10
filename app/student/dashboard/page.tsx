@@ -82,10 +82,10 @@ export default function StudentDashboardPage() {
 
               {/* Alerts & Notifications */}
               <div className="space-y-3">
-                <Alert className="border-amber-200 bg-amber-50">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                  <AlertTitle className="text-amber-900">Upcoming Deadline</AlertTitle>
-                  <AlertDescription className="text-amber-700">
+                <Alert className="border-blue-200 bg-blue-50">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-900">Upcoming Deadline</AlertTitle>
+                  <AlertDescription className="text-blue-700">
                     Problem Set 6 due tomorrow at 11:59 PM - 2 problems remaining
                   </AlertDescription>
                 </Alert>
