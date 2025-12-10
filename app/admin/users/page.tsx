@@ -159,13 +159,13 @@ export default function AdminUsersPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">Inactive</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-900">Inactive</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-amber-700">45</p>
-                    <p className="text-xs text-amber-600 mt-1">Last 30 days</p>
+                    <p className="text-2xl font-bold text-blue-700">45</p>
+                    <p className="text-xs text-blue-600 mt-1">Last 30 days</p>
                   </CardContent>
                 </Card>
               </div>
