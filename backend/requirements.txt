@@ -48,7 +48,7 @@ textblob==0.17.1
 langdetect==1.0.9
 sentence-transformers==2.2.2
 huggingface-hub==0.19.4
-tokenizers==0.15.0
+tokenizers==0.22.1
 
 # Document Processing
 pypdf2==3.0.1
