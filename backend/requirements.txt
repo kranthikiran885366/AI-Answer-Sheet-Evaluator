@@ -615,7 +615,7 @@ deequ==0.2.0
 pandas-profiling==3.6.6
 
 # Advanced Data Lineage
-datahub==0.12.1
+datahub==0.999.1
 apache-atlas==2.3.0
 openlineage==0.28.0
 
