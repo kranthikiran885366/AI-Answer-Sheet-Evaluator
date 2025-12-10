@@ -62,13 +62,13 @@ export default function AdminModelPerformancePage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-green-200 bg-gradient-to-br from-amber-50 to-white">
+                <Card className="border-green-200 bg-gradient-to-br from-blue-50 to-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">F1 Score</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-900">F1 Score</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-amber-700">94.8%</p>
-                    <p className="text-xs text-amber-600 mt-1">Harmonic mean</p>
+                    <p className="text-2xl font-bold text-blue-700">94.8%</p>
+                    <p className="text-xs text-blue-600 mt-1">Harmonic mean</p>
                   </CardContent>
                 </Card>
               </div>
