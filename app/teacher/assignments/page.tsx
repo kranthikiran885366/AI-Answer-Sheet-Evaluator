@@ -64,13 +64,13 @@ export default function TeacherAssignmentsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-green-200 bg-gradient-to-br from-amber-50 to-white">
+                <Card className="border-green-200 bg-gradient-to-br from-blue-50 to-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">Due Soon</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-900">Due Soon</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-amber-700">3</p>
-                    <p className="text-xs text-amber-600 mt-1">In next 7 days</p>
+                    <p className="text-2xl font-bold text-blue-700">3</p>
+                    <p className="text-xs text-blue-600 mt-1">In next 7 days</p>
                   </CardContent>
                 </Card>
               </div>
