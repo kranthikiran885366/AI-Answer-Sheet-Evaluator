@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   MessageSquare,
@@ -20,7 +21,10 @@ import {
   Brain,
   Star,
   ThumbsUp,
-  ThumbsDown,
+  Download,
+  Loader2,
+  FileText,
+  RefreshCw,
 } from "lucide-react"
 
 interface FeedbackData {
@@ -38,86 +42,84 @@ interface FeedbackData {
   confidence: number
 }
 
+interface EvaluationOption {
+  id: string
+  studentName: string
+  subject: string
+  score: number
+  maxScore: number
+  grade: string
+  evaluationDate: string
+}
+
 export function FeedbackGeneration() {
   const [activeTab, setActiveTab] = useState("generate")
   const [selectedEvaluation, setSelectedEvaluation] = useState("")
   const [feedbackType, setFeedbackType] = useState("comprehensive")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isLoadingEvals, setIsLoadingEvals] = useState(true)
   const [generatedFeedback, setGeneratedFeedback] = useState<FeedbackData | null>(null)
-
-  // Mock evaluation data
-  const mockEvaluations = [
-    { id: "evaluation-1", studentName: "John Doe", subject: "Mathematics", score: 85 },
-    { id: "evaluation-2", studentName: "Jane Smith", subject: "Physics", score: 92 },
-    { id: "evaluation-3", studentName: "Mike Johnson", subject: "Chemistry", score: 78 },
-  ]
+  const [evaluations, setEvaluations] = useState<EvaluationOption[]>([])
+  const [error, setError] = useState("")
 
   const feedbackTypes = [
-    {
-      value: "comprehensive",
-      label: "Comprehensive Feedback",
-      description: "Detailed analysis with improvement suggestions",
-    },
+    { value: "comprehensive", label: "Comprehensive Feedback", description: "Detailed analysis with improvement suggestions" },
     { value: "encouraging", label: "Encouraging Feedback", description: "Positive reinforcement focused" },
     { value: "constructive", label: "Constructive Feedback", description: "Specific areas for improvement" },
     { value: "motivational", label: "Motivational Feedback", description: "Inspiring and goal-oriented" },
   ]
 
+  useEffect(() => {
+    fetchEvaluations()
+  }, [])
+
+  const fetchEvaluations = async () => {
+    setIsLoadingEvals(true)
+    try {
+      const res = await fetch("/api/feedback/generate")
+      if (res.ok) {
+        const data = await res.json()
+        setEvaluations(data.evaluations || [])
+      }
+    } catch (err) {
+      console.error("Failed to load evaluations")
+    } finally {
+      setIsLoadingEvals(false)
+    }
+  }
+
   const generateFeedback = async () => {
     if (!selectedEvaluation) return
-
     setIsGenerating(true)
+    setError("")
+    setGeneratedFeedback(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      const res = await fetch("/api/feedback/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evaluationId: selectedEvaluation, feedbackType }),
+      })
 
-    // Mock generated feedback
-    const mockFeedback: FeedbackData = {
-      id: selectedEvaluation,
-      studentName: "John Doe",
-      subject: "Mathematics",
-      score: 85,
-      maxScore: 100,
-      grade: "B+",
-      overallFeedback:
-        "You have demonstrated a solid understanding of the mathematical concepts covered in this assessment. Your problem-solving approach shows logical thinking and good computational skills. With some focused practice on the areas highlighted below, you can achieve even better results.",
-      strengths: [
-        "Strong grasp of algebraic manipulation",
-        "Accurate calculations in most problems",
-        "Clear presentation of solutions",
-        "Good understanding of basic concepts",
-      ],
-      improvements: [
-        "Work on complex word problems",
-        "Practice geometric proofs",
-        "Improve time management during exams",
-        "Review trigonometric identities",
-      ],
-      suggestions: [
-        "Practice 2-3 word problems daily",
-        "Use visual aids for geometry problems",
-        "Create a study schedule with timed practice sessions",
-        "Form a study group with classmates",
-      ],
-      nextSteps: [
-        "Review Chapter 7: Advanced Algebra",
-        "Complete practice worksheets 15-18",
-        "Schedule a meeting with your teacher",
-        "Take the practice test next week",
-      ],
-      confidence: 94.5,
+      const data = await res.json()
+
+      if (res.ok) {
+        setGeneratedFeedback(data.feedback)
+      } else {
+        setError(data.error || "Failed to generate feedback")
+      }
+    } catch (err) {
+      setError("Network error. Please try again.")
+    } finally {
+      setIsGenerating(false)
     }
-
-    setGeneratedFeedback(mockFeedback)
-    setIsGenerating(false)
   }
 
   const exportFeedback = () => {
     if (!generatedFeedback) return
 
-    const feedbackText = `
-STUDENT FEEDBACK REPORT
-
+    const text = `STUDENT FEEDBACK REPORT
+==============================
 Student: ${generatedFeedback.studentName}
 Subject: ${generatedFeedback.subject}
 Score: ${generatedFeedback.score}/${generatedFeedback.maxScore} (${generatedFeedback.grade})
@@ -137,67 +139,88 @@ ${generatedFeedback.suggestions.map((s) => `• ${s}`).join("\n")}
 NEXT STEPS:
 ${generatedFeedback.nextSteps.map((n) => `• ${n}`).join("\n")}
 
-Generated with AI Confidence: ${generatedFeedback.confidence}%
-    `
-
-    const blob = new Blob([feedbackText], { type: "text/plain" })
+AI Confidence: ${generatedFeedback.confidence}%
+`
+    const blob = new Blob([text], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `feedback-${generatedFeedback.studentName.replace(" ", "-")}.txt`
+    a.download = `feedback-${generatedFeedback.studentName.replace(/\s/g, "-")}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">AI Feedback Generation</h2>
-        <p className="text-gray-600">Generate personalized, constructive feedback for student evaluations</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900">AI Feedback Generation</h2>
+          <p className="text-slate-500 mt-1">Generate personalized, constructive feedback for student evaluations</p>
+        </div>
+        <Button variant="outline" onClick={fetchEvaluations} className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2 bg-slate-100">
           <TabsTrigger value="generate">Generate Feedback</TabsTrigger>
-          <TabsTrigger value="templates">Feedback Templates</TabsTrigger>
-          <TabsTrigger value="analytics">Feedback Analytics</TabsTrigger>
+          <TabsTrigger value="templates">Feedback Types</TabsTrigger>
         </TabsList>
 
-        {/* Generate Feedback Tab */}
         <TabsContent value="generate" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Generation Controls */}
             <div className="lg:col-span-1 space-y-6">
-              <Card>
+              <Card className="border border-slate-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                    <MessageSquare className="h-5 w-5 text-indigo-600" />
                     Feedback Settings
                   </CardTitle>
-                  <CardDescription>Configure feedback generation parameters</CardDescription>
+                  <CardDescription>Configure feedback generation</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
                   <div>
-                    <Label htmlFor="evaluation">Select Evaluation</Label>
-                    <Select value={selectedEvaluation} onValueChange={setSelectedEvaluation}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose an evaluation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockEvaluations.map((evaluation) => (
-                          <SelectItem key={evaluation.id} value={evaluation.id}>
-                            {evaluation.studentName} - {evaluation.subject} ({evaluation.score}%)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Select Evaluation</Label>
+                    {isLoadingEvals ? (
+                      <div className="flex items-center gap-2 py-2 text-slate-400 text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading evaluations...
+                      </div>
+                    ) : evaluations.length === 0 ? (
+                      <div className="py-3 text-center">
+                        <FileText className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-slate-500 text-sm">No evaluations available.</p>
+                        <p className="text-xs text-slate-400">Upload and evaluate answer sheets first.</p>
+                      </div>
+                    ) : (
+                      <Select value={selectedEvaluation} onValueChange={setSelectedEvaluation}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Choose an evaluation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {evaluations.map((e) => (
+                            <SelectItem key={e.id} value={e.id}>
+                              {e.studentName} — {e.subject} ({e.grade}, {Math.round((e.score / e.maxScore) * 100)}%)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div>
-                    <Label htmlFor="feedbackType">Feedback Type</Label>
+                    <Label>Feedback Style</Label>
                     <Select value={feedbackType} onValueChange={setFeedbackType}>
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -205,7 +228,7 @@ Generated with AI Confidence: ${generatedFeedback.confidence}%
                           <SelectItem key={type.value} value={type.value}>
                             <div>
                               <div className="font-medium">{type.label}</div>
-                              <div className="text-xs text-gray-500">{type.description}</div>
+                              <div className="text-xs text-slate-500">{type.description}</div>
                             </div>
                           </SelectItem>
                         ))}
@@ -213,11 +236,15 @@ Generated with AI Confidence: ${generatedFeedback.confidence}%
                     </Select>
                   </div>
 
-                  <Button onClick={generateFeedback} disabled={!selectedEvaluation || isGenerating} className="w-full">
+                  <Button
+                    onClick={generateFeedback}
+                    disabled={!selectedEvaluation || isGenerating}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                  >
                     {isGenerating ? (
                       <>
                         <Brain className="mr-2 h-4 w-4 animate-pulse" />
-                        Generating Feedback...
+                        Generating...
                       </>
                     ) : (
                       <>
@@ -229,291 +256,177 @@ Generated with AI Confidence: ${generatedFeedback.confidence}%
                 </CardContent>
               </Card>
 
-              {/* Feedback Quality Metrics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Quality Metrics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Personalization</span>
-                      <span>95%</span>
+              {generatedFeedback && (
+                <Card className="border border-indigo-200 bg-indigo-50/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-slate-900 text-sm">
+                      <Target className="h-4 w-4 text-indigo-600" />
+                      Feedback Quality
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>AI Confidence</span>
+                        <span>{generatedFeedback.confidence}%</span>
+                      </div>
+                      <Progress value={generatedFeedback.confidence} className="h-1.5" />
                     </div>
-                    <Progress value={95} className="h-2" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Constructiveness</span>
-                      <span>92%</span>
-                    </div>
-                    <Progress value={92} className="h-2" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Clarity</span>
-                      <span>98%</span>
-                    </div>
-                    <Progress value={98} className="h-2" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Actionability</span>
-                      <span>89%</span>
-                    </div>
-                    <Progress value={89} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
+                    <Button onClick={exportFeedback} variant="outline" size="sm" className="w-full gap-2">
+                      <Download className="h-4 w-4" />
+                      Export Feedback
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            {/* Generated Feedback Display */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2">
+              {!generatedFeedback && !isGenerating && (
+                <Card className="border border-slate-200 h-full flex items-center justify-center">
+                  <CardContent className="text-center py-16">
+                    <Brain className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700 mb-2">Ready to Generate</h3>
+                    <p className="text-slate-500 text-sm">Select an evaluation and click Generate AI Feedback</p>
+                  </CardContent>
+                </Card>
+              )}
+
               {isGenerating && (
-                <Card>
-                  <CardContent className="p-8">
-                    <div className="text-center space-y-4">
-                      <Brain className="h-16 w-16 text-blue-600 mx-auto animate-pulse" />
-                      <div>
-                        <h3 className="text-lg font-semibold">Generating Personalized Feedback</h3>
-                        <p className="text-gray-600">
-                          AI is analyzing the evaluation and creating tailored feedback...
-                        </p>
-                      </div>
-                      <Progress value={66} className="w-full max-w-md mx-auto" />
-                    </div>
+                <Card className="border border-indigo-200 h-full flex items-center justify-center">
+                  <CardContent className="text-center py-16">
+                    <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-700 mb-2">Generating Feedback</h3>
+                    <p className="text-slate-500 text-sm">AI is analyzing the evaluation and crafting personalized feedback...</p>
                   </CardContent>
                 </Card>
               )}
 
               {generatedFeedback && !isGenerating && (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>Generated Feedback</CardTitle>
-                        <CardDescription>
-                          For {generatedFeedback.studentName} - {generatedFeedback.subject}
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{generatedFeedback.confidence}% Confidence</Badge>
-                        <Button variant="outline" onClick={exportFeedback}>
-                          Export
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Score Summary */}
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {generatedFeedback.score}/{generatedFeedback.maxScore}
-                        </div>
-                        <div className="text-sm text-blue-800">Overall Score</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xl font-semibold text-blue-600">{generatedFeedback.grade}</div>
-                        <div className="text-sm text-blue-800">Grade</div>
-                      </div>
-                    </div>
-
-                    {/* Overall Feedback */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4" />
-                        Overall Feedback
-                      </h4>
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <p className="text-gray-800">{generatedFeedback.overallFeedback}</p>
-                      </div>
-                    </div>
-
-                    {/* Strengths */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-700">
-                        <CheckCircle className="h-4 w-4" />
-                        Strengths
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {generatedFeedback.strengths.map((strength, index) => (
-                          <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded">
-                            <Star className="h-4 w-4 text-green-600" />
-                            <span className="text-green-800 text-sm">{strength}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Areas for Improvement */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-orange-700">
-                        <AlertCircle className="h-4 w-4" />
-                        Areas for Improvement
-                      </h4>
-                      <div className="space-y-2">
-                        {generatedFeedback.improvements.map((improvement, index) => (
-                          <div key={index} className="flex items-start gap-2 p-3 bg-orange-50 rounded">
-                            <TrendingUp className="h-4 w-4 text-orange-600 mt-0.5" />
-                            <span className="text-orange-800 text-sm">{improvement}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Suggestions */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-700">
-                        <Lightbulb className="h-4 w-4" />
-                        Suggestions
-                      </h4>
-                      <div className="space-y-2">
-                        {generatedFeedback.suggestions.map((suggestion, index) => (
-                          <div key={index} className="flex items-start gap-2 p-3 bg-purple-50 rounded">
-                            <Lightbulb className="h-4 w-4 text-purple-600 mt-0.5" />
-                            <span className="text-purple-800 text-sm">{suggestion}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Next Steps */}
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-700">
-                        <BookOpen className="h-4 w-4" />
-                        Next Steps
-                      </h4>
-                      <div className="space-y-2">
-                        {generatedFeedback.nextSteps.map((step, index) => (
-                          <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded">
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                              {index + 1}
-                            </div>
-                            <span className="text-blue-800 text-sm">{step}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Feedback Rating */}
-                    <div className="border-t pt-4">
+                <div className="space-y-4">
+                  <Card className="border border-slate-200">
+                    <CardHeader>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Was this feedback helpful?</span>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <ThumbsUp className="h-4 w-4 mr-1" />
-                            Yes
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <ThumbsDown className="h-4 w-4 mr-1" />
-                            No
-                          </Button>
+                        <div>
+                          <CardTitle className="text-slate-900">{generatedFeedback.studentName}</CardTitle>
+                          <CardDescription>{generatedFeedback.subject} · Grade: {generatedFeedback.grade} · {generatedFeedback.score}/{generatedFeedback.maxScore}</CardDescription>
                         </div>
+                        <Badge className="bg-indigo-100 text-indigo-700">
+                          <Star className="h-3 w-3 mr-1" />
+                          {generatedFeedback.confidence}% confidence
+                        </Badge>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-slate-700">{generatedFeedback.overallFeedback}</p>
+                    </CardContent>
+                  </Card>
 
-              {!generatedFeedback && !isGenerating && (
-                <Card>
-                  <CardContent className="p-8">
-                    <div className="text-center space-y-4">
-                      <MessageSquare className="h-16 w-16 text-gray-300 mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-600">No Feedback Generated</h3>
-                        <p className="text-gray-500">Select an evaluation and click "Generate AI Feedback" to start</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="border border-indigo-100 bg-indigo-50/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-sm text-indigo-800">
+                          <ThumbsUp className="h-4 w-4" />
+                          Strengths
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {generatedFeedback.strengths.map((s, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-indigo-700">
+                              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border border-orange-100 bg-orange-50/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-sm text-orange-800">
+                          <TrendingUp className="h-4 w-4" />
+                          Improvements
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {generatedFeedback.improvements.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-orange-700">
+                              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="border border-blue-100 bg-blue-50/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-sm text-blue-800">
+                          <Lightbulb className="h-4 w-4" />
+                          Suggestions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {generatedFeedback.suggestions.map((s, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-blue-700">
+                              <span className="font-bold text-blue-500">→</span>
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border border-violet-100 bg-violet-50/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-sm text-violet-800">
+                          <BookOpen className="h-4 w-4" />
+                          Next Steps
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {generatedFeedback.nextSteps.map((step, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-violet-700">
+                              <span className="font-bold text-violet-500">{i + 1}.</span>
+                              {step}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         </TabsContent>
 
-        {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {feedbackTypes.map((template) => (
-              <Card key={template.value} className="hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {feedbackTypes.map((type) => (
+              <Card
+                key={type.value}
+                className={`border cursor-pointer transition-all ${feedbackType === type.value ? "border-indigo-400 bg-indigo-50" : "border-slate-200 hover:border-indigo-200"}`}
+                onClick={() => { setFeedbackType(type.value); setActiveTab("generate") }}
+              >
                 <CardHeader>
-                  <CardTitle className="text-lg">{template.label}</CardTitle>
-                  <CardDescription>{template.description}</CardDescription>
+                  <CardTitle className="text-slate-900 text-base">{type.label}</CardTitle>
+                  <CardDescription>{type.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-600">
-                      <strong>Best for:</strong> Students who need {template.value} guidance
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <Badge variant="outline">Template</Badge>
-                      <Button variant="outline" size="sm">
-                        Use Template
-                      </Button>
-                    </div>
-                  </div>
+                  {feedbackType === type.value && (
+                    <Badge className="bg-indigo-100 text-indigo-700">Currently selected</Badge>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">1,247</div>
-                  <div className="text-sm text-gray-600">Feedback Generated</div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">94.2%</div>
-                  <div className="text-sm text-gray-600">Positive Rating</div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">2.3s</div>
-                  <div className="text-sm text-gray-600">Avg Generation Time</div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-600">89%</div>
-                  <div className="text-sm text-gray-600">Student Engagement</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Feedback Effectiveness Over Time</CardTitle>
-              <CardDescription>Track how feedback quality improves with AI learning</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-2" />
-                  <p>Analytics chart would be displayed here</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

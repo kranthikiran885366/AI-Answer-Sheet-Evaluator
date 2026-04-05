@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -26,12 +24,52 @@ import {
 } from "lucide-react"
 
 interface EvaluationResultsProps {
-  data: any
+  data?: any
+  sessionId?: string
 }
 
-export function EvaluationResults({ data }: EvaluationResultsProps) {
+export function EvaluationResults({ data: initialData, sessionId }: EvaluationResultsProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [feedbackRatings, setFeedbackRatings] = useState<Record<number, "helpful" | "unhelpful" | null>>({})
+  const [data, setData] = useState<any>(initialData || null)
+  const [isLoading, setIsLoading] = useState(!initialData && !!sessionId)
+  const [error, setError] = useState("")
+
+  React.useEffect(() => {
+    if (sessionId && !initialData) {
+      fetch(`/api/results/${sessionId}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.result) setData(d.result)
+          else setError(d.error || "Result not found")
+        })
+        .catch(() => setError("Failed to load result"))
+        .finally(() => setIsLoading(false))
+    }
+  }, [sessionId, initialData])
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <div className="animate-spin h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-slate-500">Loading evaluation results...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-red-500 mb-2">{error}</p>
+          <p className="text-muted-foreground text-sm">This evaluation may not exist or hasn't completed yet.</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!data) {
     return (

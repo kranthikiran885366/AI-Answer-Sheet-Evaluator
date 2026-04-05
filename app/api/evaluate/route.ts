@@ -21,18 +21,19 @@ export async function POST(req: NextRequest) {
 
     await writeFile(path.join(uploadDir, "meta.json"), JSON.stringify({ ...meta, status: "processing" }))
 
-    const apiKey = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY
+    const hasOpenAI = !!process.env.OPENAI_API_KEY
+    const hasGemini = !!process.env.GEMINI_API_KEY
 
-    if (!apiKey) {
-      const simulatedResult = buildSimulatedResult(meta)
-      await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(simulatedResult))
+    if (!hasOpenAI && !hasGemini) {
+      const demoResult = buildDemoResult(meta)
+      await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(demoResult))
       await writeFile(path.join(uploadDir, "meta.json"), JSON.stringify({ ...meta, status: "completed" }))
-      return NextResponse.json({ success: true, sessionId, result: simulatedResult })
+      return NextResponse.json({ success: true, sessionId, result: demoResult })
     }
 
-    let extractedText = "The student has answered all questions with reasonable accuracy."
+    let extractedText = "The student has answered the questions covering the required subject matter."
 
-    if (process.env.OPENAI_API_KEY) {
+    if (hasOpenAI) {
       try {
         const ext = meta.fileName.split(".").pop()?.toLowerCase()
         const isImage = ["jpg", "jpeg", "png", "tiff", "tif"].includes(ext || "")
@@ -47,18 +48,24 @@ export async function POST(req: NextRequest) {
             {
               role: "user",
               content: [
-                { type: "text", text: "Extract ALL text from this answer sheet image. Return only the verbatim text, preserving the structure of questions and answers." },
-                { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64}` } }
-              ]
-            }
+                {
+                  type: "text",
+                  text: "Extract ALL text from this answer sheet image. Return only the verbatim text, preserving the structure of questions and answers.",
+                },
+                { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64}` } },
+              ],
+            },
           ],
-          max_tokens: 2000
+          max_tokens: 2000,
         }
 
         const ocrRes = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
-          headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify(ocrPayload)
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(ocrPayload),
         })
 
         if (ocrRes.ok) {
@@ -111,17 +118,20 @@ Respond ONLY with a valid JSON object matching this schema exactly:
 
     let evaluationResult: any = null
 
-    if (process.env.OPENAI_API_KEY) {
+    if (hasOpenAI) {
       const evalRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           model: "gpt-4o",
           messages: [{ role: "user", content: evaluationPrompt }],
           response_format: { type: "json_object" },
           max_tokens: 3000,
           temperature: 0.2,
-        })
+        }),
       })
 
       if (evalRes.ok) {
@@ -129,7 +139,7 @@ Respond ONLY with a valid JSON object matching this schema exactly:
         const content = evalData.choices?.[0]?.message?.content
         if (content) evaluationResult = JSON.parse(content)
       }
-    } else if (process.env.GEMINI_API_KEY) {
+    } else if (hasGemini) {
       const geminiRes = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
@@ -137,8 +147,8 @@ Respond ONLY with a valid JSON object matching this schema exactly:
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ parts: [{ text: evaluationPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
+            generationConfig: { responseMimeType: "application/json" },
+          }),
         }
       )
 
@@ -150,7 +160,7 @@ Respond ONLY with a valid JSON object matching this schema exactly:
     }
 
     if (!evaluationResult) {
-      evaluationResult = buildSimulatedResult(meta)
+      evaluationResult = buildDemoResult(meta)
     }
 
     const fullResult = {
@@ -161,7 +171,7 @@ Respond ONLY with a valid JSON object matching this schema exactly:
       examType: meta.examType,
       evaluationDate: new Date().toISOString(),
       extractedText,
-      aiProvider: process.env.OPENAI_API_KEY ? "openai" : process.env.GEMINI_API_KEY ? "gemini" : "demo",
+      aiProvider: hasOpenAI ? "openai" : hasGemini ? "gemini" : "demo",
     }
 
     await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(fullResult))
@@ -174,49 +184,55 @@ Respond ONLY with a valid JSON object matching this schema exactly:
   }
 }
 
-function buildSimulatedResult(meta: any) {
-  const marks = Math.floor(Math.random() * 25) + 70
-  const grade = marks >= 90 ? "A+" : marks >= 80 ? "A" : marks >= 70 ? "B+" : marks >= 60 ? "B" : "C"
+function buildDemoResult(meta: any) {
   return {
-    obtainedMarks: marks,
+    obtainedMarks: 75,
     totalMarks: 100,
-    percentage: marks,
-    grade,
+    percentage: 75,
+    grade: "B+",
     confidenceScore: 88,
-    overallFeedback: `The student demonstrates a good understanding of ${meta.subject} concepts. The answers are generally well-structured with clear reasoning. Focus on improving depth of explanation in complex topics.`,
-    strengths: ["Clear and structured answers", "Good conceptual understanding", "Logical problem-solving approach"],
-    improvements: ["Provide more detailed explanations", "Include more supporting examples", "Review calculation accuracy"],
+    overallFeedback: `The student demonstrates a good understanding of ${meta.subject} concepts. To get real AI-powered evaluation with OCR and intelligent scoring, add your OPENAI_API_KEY or GEMINI_API_KEY to the environment secrets.`,
+    strengths: [
+      "Clear and structured answers",
+      "Good conceptual understanding",
+      "Logical problem-solving approach",
+    ],
+    improvements: [
+      "Provide more detailed explanations",
+      "Include more supporting examples",
+      "Review calculation accuracy",
+    ],
     questions: [
       {
         id: 1,
         topic: "Core Concepts",
-        studentAnswer: "Student provided a comprehensive response covering the main points.",
-        obtainedMarks: Math.round(marks * 0.3),
+        studentAnswer: "Student provided a response covering the main subject points.",
+        obtainedMarks: 23,
         maxMarks: 30,
-        feedback: "Good understanding demonstrated. Minor gaps in explanation depth.",
+        feedback: "Good understanding demonstrated. Add more depth to explanations for full marks.",
         keyPointsCovered: ["Main concept", "Supporting evidence"],
-        keyPointsMissed: ["Advanced application"]
+        keyPointsMissed: ["Advanced application"],
       },
       {
         id: 2,
         topic: "Applied Problems",
-        studentAnswer: "Student correctly applied the relevant formulas and methods.",
-        obtainedMarks: Math.round(marks * 0.4),
+        studentAnswer: "Student applied relevant formulas and methods.",
+        obtainedMarks: 30,
         maxMarks: 40,
-        feedback: "Correct methodology applied. Double-check the final computation steps.",
+        feedback: "Correct methodology. Double-check final computation steps.",
         keyPointsCovered: ["Correct formula", "Step-by-step working"],
-        keyPointsMissed: ["Verification step"]
+        keyPointsMissed: ["Verification step"],
       },
       {
         id: 3,
         topic: "Analysis & Evaluation",
-        studentAnswer: "Student presented a reasonable analysis with supporting arguments.",
-        obtainedMarks: Math.round(marks * 0.3),
+        studentAnswer: "Student presented a reasonable analysis with arguments.",
+        obtainedMarks: 22,
         maxMarks: 30,
-        feedback: "Solid analytical skills shown. Expand on the critical evaluation.",
+        feedback: "Solid analytical skills. Expand on critical evaluation for higher marks.",
         keyPointsCovered: ["Problem identification", "Solution approach"],
-        keyPointsMissed: ["Alternative perspectives"]
-      }
-    ]
+        keyPointsMissed: ["Alternative perspectives"],
+      },
+    ],
   }
 }
