@@ -15,9 +15,9 @@
   "homepage": "https://github.com/your-repo/evalai-pro#readme",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev -p 5000 -H 0.0.0.0",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start -p 5000 -H 0.0.0.0"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
