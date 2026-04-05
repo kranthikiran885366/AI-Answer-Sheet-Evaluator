@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Search, Download, Eye, RotateCcw, TrendingUp, BookOpen } from "lucide-react"
 
-export default function StudentDashboard() {
+export function StudentDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [evaluations, setEvaluations] = useState([])
   const [studentStats, setStudentStats] = useState({
