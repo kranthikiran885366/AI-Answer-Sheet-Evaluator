@@ -1,12 +1,23 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
-  "private": true,
+  "name": "evalai-pro",
+  "version": "1.0.0",
+  "description": "AI-Powered Answer Sheet Evaluator - Full-stack application for automated evaluation using OCR and LLMs",
+  "private": false,
+  "license": "MIT",
+  "author": "EvalAI Pro Contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/evalai-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-repo/evalai-pro/issues"
+  },
+  "homepage": "https://github.com/your-repo/evalai-pro#readme",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev -p 5000 -H 0.0.0.0",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start -p 5000 -H 0.0.0.0"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -42,15 +53,19 @@
     "@testing-library/dom": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "autoprefixer": "^10.4.20",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "cypress": "latest",
-    "date-fns": "4.1.0",
+    "date-fns": "^3.6.0",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
+    "jsonwebtoken": "^9.0.3",
     "k6": "latest",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",

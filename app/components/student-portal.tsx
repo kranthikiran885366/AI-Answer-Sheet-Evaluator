@@ -243,11 +243,11 @@ export function StudentPortal() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-                  <Star className="h-8 w-8 text-yellow-600" />
+                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                  <Star className="h-8 w-8 text-green-600" />
                   <div>
-                    <p className="font-medium">Top Performer</p>
-                    <p className="text-sm text-gray-600">Scored 90%+ in Mathematics</p>
+                    <p className="font-medium text-green-900">Top Performer</p>
+                    <p className="text-sm text-green-600">Scored 90%+ in Mathematics</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">

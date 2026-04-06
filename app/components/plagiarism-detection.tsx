@@ -233,11 +233,11 @@ export function PlagiarismDetection() {
                       <p className="text-sm text-green-700">84.8% original content detected</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-                    <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                    <AlertTriangle className="h-6 w-6 text-green-600" />
                     <div>
-                      <p className="font-medium text-yellow-800">Common Phrases</p>
-                      <p className="text-sm text-yellow-700">15.2% common academic phrases</p>
+                      <p className="font-medium text-green-800">Common Phrases</p>
+                      <p className="text-sm text-green-700">15.2% common academic phrases</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">

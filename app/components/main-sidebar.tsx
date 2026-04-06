@@ -83,13 +83,13 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
   const getRoleColor = () => {
     switch (userRole) {
       case "admin":
-        return "from-blue-600 to-indigo-700"
+        return "from-indigo-700 to-violet-600"
       case "teacher":
-        return "from-emerald-600 to-teal-700"
+        return "from-indigo-600 to-indigo-500"
       case "student":
-        return "from-orange-600 to-red-700"
+        return "from-blue-600 to-indigo-500"
       default:
-        return "from-gray-600 to-gray-700"
+        return "from-indigo-600 to-violet-600"
     }
   }
 
@@ -235,7 +235,7 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
   }
 
   return (
-    <Sidebar className="border-r border-gray-200/60 bg-white/95 backdrop-blur-xl">
+    <Sidebar className="border-r border-slate-200/60 bg-white/95 backdrop-blur-xl">
       <SidebarHeader className={`bg-gradient-to-br ${getRoleColor()} text-white p-6`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
@@ -261,7 +261,7 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
             <p className="text-sm font-semibold text-white truncate">{user.name}</p>
             <p className="text-xs text-white/80 truncate">{user.role}</p>
             <div className="flex items-center gap-1 mt-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
               <span className="text-xs text-white/80">Online</span>
             </div>
           </div>
@@ -333,7 +333,7 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
                                   item.badge === "AI"
                                     ? "bg-purple-100 text-purple-700"
                                     : item.badge === "New"
-                                      ? "bg-green-100 text-green-700"
+                                      ? "bg-indigo-100 text-indigo-700"
                                       : "bg-blue-100 text-blue-700"
                                 }`}
                               >
@@ -392,12 +392,12 @@ export function MainSidebar({ userRole = "admin" }: MainSidebarProps) {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-50">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-indigo-50">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-green-800">System Online</span>
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-indigo-800">System Online</span>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">
+                    <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
                       99.9%
                     </Badge>
                   </div>

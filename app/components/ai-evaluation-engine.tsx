@@ -317,7 +317,7 @@ export function AIEvaluationEngine() {
         return "bg-blue-500 text-white"
       case "B":
       case "B-":
-        return "bg-yellow-500 text-white"
+        return "bg-green-500 text-white"
       case "C+":
       case "C":
         return "bg-orange-500 text-white"
@@ -562,8 +562,8 @@ export function AIEvaluationEngine() {
 
                         <div>
                           <h4 className="font-semibold mb-3">Overall Feedback:</h4>
-                          <div className="p-4 bg-yellow-50 rounded-lg">
-                            <p className="text-sm">{result.feedback.overall}</p>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-sm text-green-900">{result.feedback.overall}</p>
                           </div>
                         </div>
 
