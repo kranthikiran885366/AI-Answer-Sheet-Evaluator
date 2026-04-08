@@ -390,7 +390,7 @@ pusher==3.3.2
 socketio==5.10.0
 
 # Advanced Payment Processing
-stripe==7.8.0
+stripe==14.0.1
 paypal-sdk==1.14.0
 square==31.0.0
 
