@@ -81,7 +81,7 @@ scipy==1.11.4
 matplotlib==3.8.2
 seaborn==0.13.0
 plotly==5.17.0
-bokeh==3.3.2
+bokeh==3.8.1
 
 # Async and Concurrency
 asyncio==3.4.3
