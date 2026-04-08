@@ -243,7 +243,7 @@ stanza==1.7.0
 
 # Time Series Forecasting
 sktime==0.24.1
-tsfresh==0.20.1
+tsfresh==0.21.1
 cesium==0.12.1
 
 # Advanced Optimization
@@ -436,7 +436,7 @@ elliptic-envelope==0.1.0
 
 # Advanced Feature Engineering
 featuretools==1.28.0
-tsfresh==0.20.1
+tsfresh==0.21.1
 boruta==0.3
 
 # Advanced Model Interpretation
