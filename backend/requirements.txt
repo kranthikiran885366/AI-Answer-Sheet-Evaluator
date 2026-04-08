@@ -43,7 +43,7 @@ imgaug==0.4.0
 
 # Natural Language Processing
 spacy==3.7.2
-nltk==3.8.1
+nltk==3.9.2
 textblob==0.17.1
 langdetect==1.0.9
 sentence-transformers==2.2.2
