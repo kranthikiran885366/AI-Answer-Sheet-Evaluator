@@ -1,11 +1,34 @@
-import { NextResponse } from "next/server"
-import { getDashboardStats } from "@/lib/evaluations"
+import { NextRequest, NextResponse } from "next/server"
+import { verifyToken, getTokenFromHeader } from "@/lib/auth"
+import { getStatistics, loadEvaluations } from "@/lib/db"
 import os from "os"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const stats = getDashboardStats()
+    // Verify authentication
+    const token = getTokenFromHeader(req.headers.get("authorization"))
+    if (!token) {
+      return NextResponse.json(
+        { error: "No authorization token provided" },
+        { status: 401 }
+      )
+    }
 
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      )
+    }
+
+    // Load evaluations
+    await loadEvaluations()
+
+    // Get user statistics
+    const stats = await getStatistics(decoded.id)
+
+    // Get system metrics
     const totalMem = os.totalmem()
     const freeMem = os.freemem()
     const usedMemPct = Math.round(((totalMem - freeMem) / totalMem) * 100)
@@ -23,7 +46,13 @@ export async function GET() {
     const uptimeMins = Math.floor((uptimeSeconds % 3600) / 60)
 
     return NextResponse.json({
-      ...stats,
+      success: true,
+      user: {
+        id: decoded.id,
+        username: decoded.username,
+        role: decoded.role,
+      },
+      statistics: stats,
       system: {
         cpu: cpuUsage,
         memory: usedMemPct,
@@ -31,15 +60,23 @@ export async function GET() {
         platform: os.platform(),
         cpuCount: cpus.length,
       },
-      aiProvider: {
+      aiProviders: {
         openai: !!process.env.OPENAI_API_KEY,
         gemini: !!process.env.GEMINI_API_KEY,
         anthropic: !!process.env.ANTHROPIC_API_KEY,
-        active: process.env.OPENAI_API_KEY ? "OpenAI GPT-4o" : process.env.GEMINI_API_KEY ? "Gemini Flash" : "Demo Mode",
+        active: process.env.OPENAI_API_KEY
+          ? "OpenAI GPT-4o"
+          : process.env.GEMINI_API_KEY
+            ? "Gemini Flash"
+            : "Demo Mode",
       },
       timestamp: new Date().toISOString(),
     })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    console.error("Dashboard stats error:", err)
+    return NextResponse.json(
+      { error: err.message || "Failed to fetch dashboard stats" },
+      { status: 500 }
+    )
   }
 }

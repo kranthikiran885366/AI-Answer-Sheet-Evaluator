@@ -2,237 +2,141 @@ import { NextRequest, NextResponse } from "next/server"
 import { readFile, writeFile } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
+import { verifyToken, getTokenFromHeader } from "@/lib/auth"
+import { processEvaluation } from "@/lib/evaluation-engine"
+import { updateEvaluationStatus, getEvaluationBySessionId } from "@/lib/db"
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, aiProvider = "openai" } = await req.json()
+    // Verify authentication
+    const token = getTokenFromHeader(req.headers.get("authorization"))
+    if (!token) {
+      return NextResponse.json(
+        { error: "No authorization token provided" },
+        { status: 401 }
+      )
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      )
+    }
+
+    const { sessionId } = await req.json()
 
     if (!sessionId) {
-      return NextResponse.json({ error: "sessionId is required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "sessionId is required" },
+        { status: 400 }
+      )
     }
 
+    // Check session directory exists
     const uploadDir = path.join(process.cwd(), "uploads", sessionId)
     if (!existsSync(uploadDir)) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Session not found" },
+        { status: 404 }
+      )
     }
 
-    const metaRaw = await readFile(path.join(uploadDir, "meta.json"), "utf-8")
+    // Read metadata
+    const metaPath = path.join(uploadDir, "meta.json")
+    const metaRaw = await readFile(metaPath, "utf-8")
     const meta = JSON.parse(metaRaw)
 
-    await writeFile(path.join(uploadDir, "meta.json"), JSON.stringify({ ...meta, status: "processing" }))
-
-    const hasOpenAI = !!process.env.OPENAI_API_KEY
-    const hasGemini = !!process.env.GEMINI_API_KEY
-
-    if (!hasOpenAI && !hasGemini) {
-      const demoResult = buildDemoResult(meta)
-      await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(demoResult))
-      await writeFile(path.join(uploadDir, "meta.json"), JSON.stringify({ ...meta, status: "completed" }))
-      return NextResponse.json({ success: true, sessionId, result: demoResult })
+    // Get evaluation record
+    const evaluation = await getEvaluationBySessionId(sessionId)
+    if (!evaluation) {
+      return NextResponse.json(
+        { error: "Evaluation record not found" },
+        { status: 404 }
+      )
     }
 
-    let extractedText = "The student has answered the questions covering the required subject matter."
-
-    if (hasOpenAI) {
-      try {
-        const ext = meta.fileName.split(".").pop()?.toLowerCase()
-        const isImage = ["jpg", "jpeg", "png", "tiff", "tif"].includes(ext || "")
-        const filePath = path.join(uploadDir, `answer_sheet.${ext}`)
-        const fileBuffer = await readFile(filePath)
-        const base64 = fileBuffer.toString("base64")
-        const mimeType = isImage ? (ext === "png" ? "image/png" : "image/jpeg") : "application/pdf"
-
-        const ocrPayload = {
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Extract ALL text from this answer sheet image. Return only the verbatim text, preserving the structure of questions and answers.",
-                },
-                { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64}` } },
-              ],
-            },
-          ],
-          max_tokens: 2000,
-        }
-
-        const ocrRes = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(ocrPayload),
-        })
-
-        if (ocrRes.ok) {
-          const ocrData = await ocrRes.json()
-          extractedText = ocrData.choices?.[0]?.message?.content || extractedText
-        }
-      } catch (e) {
-        console.error("OCR step failed:", e)
-      }
+    // Check access
+    if (evaluation.userId !== decoded.id) {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      )
     }
 
-    const rubricPrompt = meta.rubric
-      ? `Use this rubric for evaluation:\n${meta.rubric}`
-      : `Evaluate based on standard ${meta.subject} assessment criteria. Award marks out of 100.`
+    // Update status to processing
+    await updateEvaluationStatus(evaluation.id, "processing")
+    await writeFile(metaPath, JSON.stringify({ ...meta, status: "processing" }))
 
-    const evaluationPrompt = `You are an expert ${meta.subject} examiner. Evaluate the following student answer sheet.
+    try {
+      // Get image path
+      const ext = meta.fileName.split(".").pop()?.toLowerCase()
+      const imagePath = path.join(uploadDir, `answer_sheet.${ext}`)
 
-Student: ${meta.studentName}
-Subject: ${meta.subject}
-Exam Type: ${meta.examType}
-
-${rubricPrompt}
-
-EXTRACTED ANSWER SHEET TEXT:
-${extractedText}
-
-Respond ONLY with a valid JSON object matching this schema exactly:
-{
-  "obtainedMarks": <number 0-100>,
-  "totalMarks": 100,
-  "percentage": <number>,
-  "grade": "<A+|A|B+|B|C+|C|D|F>",
-  "confidenceScore": <number 0-100>,
-  "overallFeedback": "<2-3 sentence overall feedback>",
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "improvements": ["<area 1>", "<area 2>"],
-  "questions": [
-    {
-      "id": 1,
-      "topic": "<topic>",
-      "studentAnswer": "<brief excerpt from extracted text>",
-      "obtainedMarks": <number>,
-      "maxMarks": <number>,
-      "feedback": "<specific feedback>",
-      "keyPointsCovered": ["<point>"],
-      "keyPointsMissed": ["<point>"]
-    }
-  ]
-}`
-
-    let evaluationResult: any = null
-
-    if (hasOpenAI) {
-      const evalRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: evaluationPrompt }],
-          response_format: { type: "json_object" },
-          max_tokens: 3000,
-          temperature: 0.2,
-        }),
-      })
-
-      if (evalRes.ok) {
-        const evalData = await evalRes.json()
-        const content = evalData.choices?.[0]?.message?.content
-        if (content) evaluationResult = JSON.parse(content)
-      }
-    } else if (hasGemini) {
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      // Process evaluation
+      const result = await processEvaluation(
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: evaluationPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        }
+          extractedText: "",
+          subject: meta.subject,
+          studentName: meta.studentName,
+          examType: meta.examType,
+          rubric: meta.rubric,
+        },
+        imagePath
       )
 
-      if (geminiRes.ok) {
-        const geminiData = await geminiRes.json()
-        const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
-        if (text) evaluationResult = JSON.parse(text)
+      // Save result
+      const fullResult = {
+        ...result,
+        sessionId,
+        studentName: meta.studentName,
+        subject: meta.subject,
+        examType: meta.examType,
       }
+
+      await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(fullResult))
+
+      // Update database
+      await updateEvaluationStatus(
+        evaluation.id,
+        "completed",
+        result,
+        result.extractedText || meta.extractedText
+      )
+
+      await writeFile(metaPath, JSON.stringify({ ...meta, status: "completed" }))
+
+      return NextResponse.json({
+        success: true,
+        sessionId,
+        result: fullResult,
+        message: "Evaluation completed successfully",
+      })
+    } catch (processingError: any) {
+      console.error("Evaluation processing error:", processingError)
+
+      // Update status to failed
+      await updateEvaluationStatus(
+        evaluation.id,
+        "failed",
+        undefined,
+        undefined,
+        processingError.message
+      )
+
+      await writeFile(metaPath, JSON.stringify({ ...meta, status: "failed" }))
+
+      return NextResponse.json(
+        { error: `Evaluation processing failed: ${processingError.message}` },
+        { status: 500 }
+      )
     }
-
-    if (!evaluationResult) {
-      evaluationResult = buildDemoResult(meta)
-    }
-
-    const fullResult = {
-      ...evaluationResult,
-      sessionId,
-      studentName: meta.studentName,
-      subject: meta.subject,
-      examType: meta.examType,
-      evaluationDate: new Date().toISOString(),
-      extractedText,
-      aiProvider: hasOpenAI ? "openai" : hasGemini ? "gemini" : "demo",
-    }
-
-    await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(fullResult))
-    await writeFile(path.join(uploadDir, "meta.json"), JSON.stringify({ ...meta, status: "completed" }))
-
-    return NextResponse.json({ success: true, sessionId, result: fullResult })
   } catch (err: any) {
-    console.error("Evaluation error:", err)
-    return NextResponse.json({ error: "Evaluation failed: " + err.message }, { status: 500 })
-  }
-}
-
-function buildDemoResult(meta: any) {
-  return {
-    obtainedMarks: 75,
-    totalMarks: 100,
-    percentage: 75,
-    grade: "B+",
-    confidenceScore: 88,
-    overallFeedback: `The student demonstrates a good understanding of ${meta.subject} concepts. To get real AI-powered evaluation with OCR and intelligent scoring, add your OPENAI_API_KEY or GEMINI_API_KEY to the environment secrets.`,
-    strengths: [
-      "Clear and structured answers",
-      "Good conceptual understanding",
-      "Logical problem-solving approach",
-    ],
-    improvements: [
-      "Provide more detailed explanations",
-      "Include more supporting examples",
-      "Review calculation accuracy",
-    ],
-    questions: [
-      {
-        id: 1,
-        topic: "Core Concepts",
-        studentAnswer: "Student provided a response covering the main subject points.",
-        obtainedMarks: 23,
-        maxMarks: 30,
-        feedback: "Good understanding demonstrated. Add more depth to explanations for full marks.",
-        keyPointsCovered: ["Main concept", "Supporting evidence"],
-        keyPointsMissed: ["Advanced application"],
-      },
-      {
-        id: 2,
-        topic: "Applied Problems",
-        studentAnswer: "Student applied relevant formulas and methods.",
-        obtainedMarks: 30,
-        maxMarks: 40,
-        feedback: "Correct methodology. Double-check final computation steps.",
-        keyPointsCovered: ["Correct formula", "Step-by-step working"],
-        keyPointsMissed: ["Verification step"],
-      },
-      {
-        id: 3,
-        topic: "Analysis & Evaluation",
-        studentAnswer: "Student presented a reasonable analysis with arguments.",
-        obtainedMarks: 22,
-        maxMarks: 30,
-        feedback: "Solid analytical skills. Expand on critical evaluation for higher marks.",
-        keyPointsCovered: ["Problem identification", "Solution approach"],
-        keyPointsMissed: ["Alternative perspectives"],
-      },
-    ],
+    console.error("Evaluate route error:", err)
+    return NextResponse.json(
+      { error: err.message || "Evaluation failed" },
+      { status: 500 }
+    )
   }
 }
