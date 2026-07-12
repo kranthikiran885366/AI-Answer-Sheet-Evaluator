@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { readFile, writeFile } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
+import { spawn } from "child_process"
 import { verifyToken, getTokenFromHeader } from "@/lib/auth"
-import { processEvaluation } from "@/lib/evaluation-engine"
-import { updateEvaluationStatus, getEvaluationBySessionId } from "@/lib/db"
+import { getEvaluationBySessionId } from "@/lib/db"
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,72 +66,28 @@ export async function POST(req: NextRequest) {
     }
 
     // Update status to processing
-    await updateEvaluationStatus(evaluation.id, "processing")
     await writeFile(metaPath, JSON.stringify({ ...meta, status: "processing" }))
 
-    try {
-      // Get image path
-      const ext = meta.fileName.split(".").pop()?.toLowerCase()
-      const imagePath = path.join(uploadDir, `answer_sheet.${ext}`)
+    // Get image path
+    const ext = meta.fileName.split(".").pop()?.toLowerCase()
+    const imagePath = path.join(uploadDir, `answer_sheet.${ext}`)
 
-      // Process evaluation
-      const result = await processEvaluation(
-        {
-          extractedText: "",
-          subject: meta.subject,
-          studentName: meta.studentName,
-          examType: meta.examType,
-          rubric: meta.rubric,
-        },
-        imagePath
-      )
+    // Trigger Python backend asynchronously
+    triggerPythonEvaluation(
+      evaluation.id,
+      imagePath,
+      meta.subject,
+      meta.rubric,
+      sessionId
+    ).catch((err) => console.error("Background evaluation error:", err))
 
-      // Save result
-      const fullResult = {
-        ...result,
-        sessionId,
-        studentName: meta.studentName,
-        subject: meta.subject,
-        examType: meta.examType,
-      }
-
-      await writeFile(path.join(uploadDir, "result.json"), JSON.stringify(fullResult))
-
-      // Update database
-      await updateEvaluationStatus(
-        evaluation.id,
-        "completed",
-        result,
-        result.extractedText || meta.extractedText
-      )
-
-      await writeFile(metaPath, JSON.stringify({ ...meta, status: "completed" }))
-
-      return NextResponse.json({
-        success: true,
-        sessionId,
-        result: fullResult,
-        message: "Evaluation completed successfully",
-      })
-    } catch (processingError: any) {
-      console.error("Evaluation processing error:", processingError)
-
-      // Update status to failed
-      await updateEvaluationStatus(
-        evaluation.id,
-        "failed",
-        undefined,
-        undefined,
-        processingError.message
-      )
-
-      await writeFile(metaPath, JSON.stringify({ ...meta, status: "failed" }))
-
-      return NextResponse.json(
-        { error: `Evaluation processing failed: ${processingError.message}` },
-        { status: 500 }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      sessionId,
+      evaluationId: evaluation.id,
+      status: "processing",
+      message: "Evaluation processing started. Check /api/results/{sessionId} for updates",
+    })
   } catch (err: any) {
     console.error("Evaluate route error:", err)
     return NextResponse.json(
@@ -139,4 +95,43 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+function triggerPythonEvaluation(
+  evalId: string,
+  imagePath: string,
+  subject: string,
+  rubric: string,
+  sessionId: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const pythonScript = path.join(
+      process.cwd(),
+      "backend/evaluation_runner.py"
+    )
+
+    const args = [
+      pythonScript,
+      "--eval-id",
+      evalId,
+      "--image-path",
+      imagePath,
+      "--subject",
+      subject,
+      "--session-id",
+      sessionId,
+    ]
+
+    if (rubric) {
+      args.push("--rubric", rubric)
+    }
+
+    const pythonProcess = spawn("python3", args, {
+      detached: true,
+      stdio: "ignore",
+    })
+
+    pythonProcess.unref()
+    resolve()
+  })
 }
